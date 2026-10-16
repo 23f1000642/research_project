@@ -1,0 +1,5 @@
+# FACE with forgetting-prioritised replay (ablation A5).
+inherit: face
+prioritized_replay: true
+pr_gamma: 1.0
+pr_eps: 0.01

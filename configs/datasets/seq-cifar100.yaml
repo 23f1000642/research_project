@@ -1,0 +1,4 @@
+# 10 tasks x 10 classes (n_tasks=5 or 20 for the sequence-length study).
+backbone: resnet18
+n_epochs: 50
+batch_size: 32

@@ -1,0 +1,4 @@
+# 5 tasks x 2 classes, reduced-stem ResNet-18, 50 epochs/task (DER protocol).
+backbone: resnet18
+n_epochs: 50
+batch_size: 32

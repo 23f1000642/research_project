@@ -1,0 +1,24 @@
+# Defaults shared by every run. Dataset and method files override these; key=value on the
+# command line overrides everything. See facecl/config.py for the precedence order.
+seed: 0
+order_seed: null          # class order; null -> same as seed (set explicitly for deep ensembles)
+device: auto
+data_root: ./data
+val_fraction: 0.1         # per-task train/val split (test sets are never used for tuning)
+shuffle_classes: true
+backbone: resnet18
+nf: 64
+dropout: 0.0
+batch_size: 32
+n_epochs: 50
+lr: 0.03
+momentum: 0.0
+weight_decay: 0.0
+mask_future: false        # Mammoth trains with CE over all outputs; evaluation always masks unseen classes
+buffer_size: 0
+eval_batch_size: 512
+data_on_device: true
+deterministic: false
+resume: true
+save_checkpoint: true
+log_every: 10

@@ -1,0 +1,11 @@
+# Online EWC. Mammoth best_args ("ewc_on"); Mammoth's Fisher estimator by default.
+buffer_size: 0
+fisher: mammoth            # mammoth | sampled | empirical
+fisher_samples: 2000
+gamma: 1.0
+per_dataset:
+  seq-cifar10: {any: {lr: 0.03, e_lambda: 10}}
+  seq-cifar100: {any: {lr: 0.03, e_lambda: 10}}   # no published value; seq-cifar10 setting reused
+  seq-tinyimg: {any: {lr: 0.03, e_lambda: 25}}
+  seq-mnist: {any: {lr: 0.03, e_lambda: 90}}
+  rot-mnist: {any: {lr: 0.1, e_lambda: 0.7}}

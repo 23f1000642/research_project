@@ -1,0 +1,6 @@
+# 10 tasks x 20 classes. Mammoth uses 100 epochs; the final value is fixed after the timing pilot
+# (identical for every method). Point tinyimagenet_root at the extracted tiny-imagenet-200 folder.
+backbone: resnet18
+n_epochs: 100
+batch_size: 32
+tinyimagenet_root: /kaggle/input/tiny-imagenet/tiny-imagenet-200

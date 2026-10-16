@@ -1,0 +1,15 @@
+# Experience Replay. Mammoth best_args ("er"); 2000/5000 use the published 5120 setting.
+buffer_size: 500
+per_dataset:
+  seq-cifar10:
+    any: {lr: 0.1, minibatch_size: 32}
+  seq-cifar100:                          # no published value; seq-cifar10 setting reused
+    any: {lr: 0.1, minibatch_size: 32}
+  seq-tinyimg:
+    any: {lr: 0.1, minibatch_size: 32}
+    500: {lr: 0.03}
+  seq-mnist:
+    any: {lr: 0.1, minibatch_size: 10}
+    200: {lr: 0.01}
+  rot-mnist:
+    any: {lr: 0.2, minibatch_size: 128}

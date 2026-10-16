@@ -1,0 +1,7 @@
+# S0: reproduce published class-IL accuracy on seq-CIFAR-10 (DER paper, Table 2) and measure
+# per-run time on Kaggle. Gate: DER++/ER within ~2 points of the published means.
+runs:
+  - dataset: seq-cifar10
+    methods: [sgd, er, derpp]
+    buffer_sizes: [500]
+    seeds: [0, 1]

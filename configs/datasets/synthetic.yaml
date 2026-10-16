@@ -1,0 +1,5 @@
+# Tiny synthetic data for unit tests (3 tasks x 2 classes, 8x8 images). Not a benchmark.
+backbone: mlp
+hidden: 32
+n_epochs: 3
+batch_size: 16

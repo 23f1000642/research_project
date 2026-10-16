@@ -1,0 +1,3 @@
+# Maximally Interfered Retrieval on top of ER (same lr as ER; 50 candidates as in the paper).
+inherit: er
+mir_candidates: 50

@@ -1,0 +1,11 @@
+# Memory Aware Synapses. No Mammoth values exist: e_lambda must be tuned on validation
+# (seed 100, <= 8 configs, same cap as every tuned method). Placeholder below.
+buffer_size: 0
+importance_samples: 2000
+e_lambda: 1.0
+per_dataset:
+  seq-cifar10: {any: {lr: 0.03}}
+  seq-cifar100: {any: {lr: 0.03}}
+  seq-tinyimg: {any: {lr: 0.03}}
+  seq-mnist: {any: {lr: 0.03}}
+  rot-mnist: {any: {lr: 0.1}}

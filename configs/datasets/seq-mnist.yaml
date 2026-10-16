@@ -1,0 +1,4 @@
+# Debugging benchmark only (5 tasks x 2 classes). DER/Mammoth protocol: 1 epoch, batch 10.
+backbone: mlp
+n_epochs: 1
+batch_size: 10

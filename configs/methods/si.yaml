@@ -1,0 +1,8 @@
+# Synaptic Intelligence. Mammoth best_args ("si").
+buffer_size: 0
+per_dataset:
+  seq-cifar10: {any: {lr: 0.03, c: 0.5, xi: 1.0}}
+  seq-cifar100: {any: {lr: 0.03, c: 0.5, xi: 1.0}}  # no published value; seq-cifar10 setting reused
+  seq-tinyimg: {any: {lr: 0.03, c: 0.5, xi: 1.0}}
+  seq-mnist: {any: {lr: 0.1, c: 1.0, xi: 0.9}}
+  rot-mnist: {any: {lr: 0.1, c: 1.0, xi: 1.0}}

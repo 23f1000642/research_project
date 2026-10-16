@@ -1,0 +1,2 @@
+# Joint upper bound: one model trained on all tasks' data at once (same epochs, same lr as fine-tuning).
+inherit: sgd

@@ -1,0 +1,4 @@
+# Domain-IL negative control: 20 tasks, each MNIST rotated by a fixed random angle in [0, 180).
+backbone: mlp
+n_epochs: 1
+batch_size: 128

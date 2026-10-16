@@ -1,0 +1,29 @@
+# DER++. Mammoth best_args ("derpp"); 2000/5000 use the published 5120 setting.
+buffer_size: 500
+per_dataset:
+  seq-cifar10:
+    any: {lr: 0.03, minibatch_size: 32}
+    200: {alpha: 0.1, beta: 0.5}
+    500: {alpha: 0.2, beta: 0.5}
+    2000: {alpha: 0.1, beta: 1.0}
+    5000: {alpha: 0.1, beta: 1.0}
+  seq-cifar100:                          # no published value; seq-cifar10 setting reused
+    any: {lr: 0.03, minibatch_size: 32}
+    200: {alpha: 0.1, beta: 0.5}
+    500: {alpha: 0.2, beta: 0.5}
+    2000: {alpha: 0.1, beta: 1.0}
+    5000: {alpha: 0.1, beta: 1.0}
+  seq-tinyimg:
+    any: {lr: 0.03, minibatch_size: 32}
+    200: {alpha: 0.1, beta: 1.0}
+    500: {alpha: 0.2, beta: 0.5}
+    2000: {alpha: 0.1, beta: 0.5}
+    5000: {alpha: 0.1, beta: 0.5}
+  seq-mnist:
+    any: {lr: 0.03, minibatch_size: 10, alpha: 1.0, beta: 0.5}
+    200: {minibatch_size: 128, alpha: 0.2, beta: 1.0}
+  rot-mnist:
+    any: {lr: 0.2, minibatch_size: 128, alpha: 0.5, beta: 1.0}
+    200: {lr: 0.1, alpha: 1.0, beta: 0.5}
+  synthetic:
+    any: {lr: 0.05, minibatch_size: 16, alpha: 0.2, beta: 0.5}

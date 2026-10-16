@@ -1,0 +1,8 @@
+# FACE = DER++ (identical alpha, beta, lr: inherited, not re-tuned) + probe split + forgetting head.
+inherit: derpp
+probe_fraction: 0.1        # rho: share of buffer slots never replayed (ablation A1)
+head_hidden: 128
+head_lr: 0.001
+probe_batch_size: 32
+head_refit_steps: 200      # head updates on the final parameters at the end of each task
+prioritized_replay: false

@@ -1,0 +1,11 @@
+# Kaggle images already provide torch/torchvision; versions used for the recorded runs are saved
+# per run in results/<run_id>/env.json.
+torch>=2.1
+torchvision>=0.16
+numpy
+scipy
+scikit-learn
+pyyaml
+matplotlib
+pandas
+pytest

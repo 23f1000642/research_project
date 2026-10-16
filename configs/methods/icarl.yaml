@@ -1,0 +1,15 @@
+# iCaRL. Mammoth best_args ("icarl"); nmc_temp only rescales the NMC scores used for uncertainty.
+buffer_size: 500
+softmax_temp: 2.0
+nmc_temp: 0.1
+per_dataset:
+  seq-cifar10:
+    any: {lr: 0.1, weight_decay: 0.00001}
+    2000: {lr: 0.03}
+    5000: {lr: 0.03}
+  seq-cifar100:                          # seq-cifar10 setting reused
+    any: {lr: 0.1, weight_decay: 0.00001}
+    2000: {lr: 0.03}
+    5000: {lr: 0.03}
+  seq-tinyimg: {any: {lr: 0.03, weight_decay: 0.00001}}
+  seq-mnist: {any: {lr: 0.1, weight_decay: 0.0}}

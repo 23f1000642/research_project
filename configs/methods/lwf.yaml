@@ -1,0 +1,8 @@
+# Learning without Forgetting (class-IL form). Mammoth best_args ("lwf").
+buffer_size: 0
+softmax_temp: 2.0
+per_dataset:
+  seq-cifar10: {any: {lr: 0.01, alpha: 3.0, weight_decay: 0.0005}}
+  seq-cifar100: {any: {lr: 0.01, alpha: 3.0, weight_decay: 0.0005}}  # seq-cifar10 setting reused
+  seq-tinyimg: {any: {lr: 0.01, alpha: 1.0, weight_decay: 0.0005}}
+  seq-mnist: {any: {lr: 0.03, alpha: 1.0, weight_decay: 0.0005}}

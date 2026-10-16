@@ -1,0 +1,6 @@
+# S1: does "confident forgetting" (H1) exist? Only the measurement, no FACE yet.
+runs:
+  - dataset: seq-cifar100
+    methods: [er, derpp]
+    buffer_sizes: [500, 2000]
+    seeds: [0, 1, 2]

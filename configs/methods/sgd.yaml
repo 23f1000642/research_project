@@ -1,0 +1,8 @@
+# Fine-tuning lower bound. Hyperparameters: Mammoth best_args ("sgd").
+buffer_size: 0
+per_dataset:
+  seq-cifar10: {any: {lr: 0.1}}
+  seq-cifar100: {any: {lr: 0.1}}       # no published value; seq-cifar10 setting reused
+  seq-tinyimg: {any: {lr: 0.03}}
+  seq-mnist: {any: {lr: 0.03}}
+  rot-mnist: {any: {lr: 0.2}}
