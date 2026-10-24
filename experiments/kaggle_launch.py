@@ -33,13 +33,22 @@ def main():
         time.sleep(60)
         print(f"{(time.time() - t0) / 60:.0f} min elapsed, running shards: "
               f"{[i for i, p in enumerate(procs) if p.poll() is None]}", flush=True)
-    print("exit codes:", [p.returncode for p in procs])
+    codes = [p.returncode for p in procs]
+    print("exit codes:", codes)
+    for shard, code in enumerate(codes):
+        if code != 0:  # show the error instead of failing silently
+            tail = (ROOT / "logs" / f"shard{shard}_{Path(plan).stem}.log").read_text().splitlines()[-40:]
+            print(f"----- shard {shard} failed, last lines of its log -----")
+            print("
+".join(tail))
     out = Path("/kaggle/working") if Path("/kaggle/working").exists() else ROOT
     archive = out / f"results_{Path(plan).stem}.tar.gz"
     with tarfile.open(archive, "w:gz") as tar:
         tar.add(ROOT / "results", arcname="results")
         tar.add(ROOT / "logs", arcname="logs")
     print("packed", archive)
+    if any(codes):
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 __pycache__/
 *.pyc
 .pytest_cache/
-data/
+/data/
 # raw per-task logits are large: archived as Kaggle outputs, not in git
 results/**/eval/
 results/**/last.pt
