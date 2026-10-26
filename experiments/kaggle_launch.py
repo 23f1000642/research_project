@@ -4,7 +4,9 @@
 
 Each GPU runs its own shard sequentially; finished runs are skipped and unfinished runs resume
 from their last completed task, so the same command can be re-run in a new session.
+Exits non-zero (after printing the end of the failing shard's log) if any shard fails.
 """
+import argparse
 import os
 import subprocess
 import sys
@@ -15,41 +17,62 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def main():
-    plan, extra = sys.argv[1], sys.argv[2:]
-    import torch
+def main(argv=None):
+    ap = argparse.ArgumentParser()
+    ap.add_argument("plan")
+    ap.add_argument("--set", nargs="*", default=[], help="config overrides key=value for every run")
+    ap.add_argument("--n-shards", type=int, default=None, help="default: number of visible GPUs")
+    ap.add_argument("--log-dir", default=str(ROOT / "logs"))
+    ap.add_argument("--out-dir", default="/kaggle/working" if Path("/kaggle/working").exists() else str(ROOT))
+    ap.add_argument("--poll-seconds", type=float, default=60)
+    args = ap.parse_args(argv)
 
-    n_gpu = max(torch.cuda.device_count(), 1)
-    procs = []
-    for shard in range(n_gpu):
+    n_shards = args.n_shards
+    if n_shards is None:
+        import torch
+
+        n_shards = max(torch.cuda.device_count(), 1)
+    overrides = dict(s.split("=", 1) for s in args.set)
+    results_dir = Path(overrides.get("results_dir", ROOT / "results"))
+    log_dir = Path(args.log_dir)
+    log_dir.mkdir(parents=True, exist_ok=True)
+    stem = Path(args.plan).stem
+
+    procs, log_paths = [], []
+    for shard in range(n_shards):
         env = dict(os.environ, CUDA_VISIBLE_DEVICES=str(shard))
-        log = open(ROOT / "logs" / f"shard{shard}_{Path(plan).stem}.log", "a")
-        cmd = [sys.executable, str(ROOT / "experiments" / "run.py"), "--plan", plan,
-               "--shard", str(shard), "--n-shards", str(n_gpu)] + (["--set", *extra[1:]] if extra[:1] == ["--set"] else [])
-        procs.append(subprocess.Popen(cmd, env=env, stdout=log, stderr=subprocess.STDOUT, cwd=ROOT))
-        print(f"shard {shard} -> GPU {shard}: {' '.join(cmd)}")
+        log_path = log_dir / f"shard{shard}_{stem}.log"
+        log_paths.append(log_path)
+        cmd = [sys.executable, str(ROOT / "experiments" / "run.py"), "--plan", args.plan,
+               "--shard", str(shard), "--n-shards", str(n_shards)]
+        if args.set:
+            cmd += ["--set", *args.set]
+        with open(log_path, "a") as log:
+            procs.append(subprocess.Popen(cmd, env=env, stdout=log, stderr=subprocess.STDOUT, cwd=ROOT))
+        print(f"shard {shard} -> GPU {shard}: {' '.join(cmd)}", flush=True)
+
     t0 = time.time()
     while any(p.poll() is None for p in procs):
-        time.sleep(60)
-        print(f"{(time.time() - t0) / 60:.0f} min elapsed, running shards: "
-              f"{[i for i, p in enumerate(procs) if p.poll() is None]}", flush=True)
+        time.sleep(args.poll_seconds)
+        running = [i for i, p in enumerate(procs) if p.poll() is None]
+        print(f"{(time.time() - t0) / 60:.0f} min elapsed, running shards: {running}", flush=True)
+
     codes = [p.returncode for p in procs]
     print("exit codes:", codes)
     for shard, code in enumerate(codes):
         if code != 0:  # show the error instead of failing silently
-            tail = (ROOT / "logs" / f"shard{shard}_{Path(plan).stem}.log").read_text().splitlines()[-40:]
-            print(f"----- shard {shard} failed, last lines of its log -----")
-            print("
-".join(tail))
-    out = Path("/kaggle/working") if Path("/kaggle/working").exists() else ROOT
-    archive = out / f"results_{Path(plan).stem}.tar.gz"
+            print(f"----- shard {shard} failed, last lines of {log_paths[shard]} -----")
+            for line in log_paths[shard].read_text().splitlines()[-40:]:
+                print(line)
+
+    archive = Path(args.out_dir) / f"results_{stem}.tar.gz"
     with tarfile.open(archive, "w:gz") as tar:
-        tar.add(ROOT / "results", arcname="results")
-        tar.add(ROOT / "logs", arcname="logs")
+        if results_dir.exists():
+            tar.add(results_dir, arcname="results")
+        tar.add(log_dir, arcname="logs")
     print("packed", archive)
-    if any(codes):
-        sys.exit(1)
+    return 1 if any(codes) else 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
