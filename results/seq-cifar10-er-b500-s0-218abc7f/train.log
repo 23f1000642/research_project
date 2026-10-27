@@ -1,0 +1,32 @@
+03:58:02 | run seq-cifar10-er-b500-s0-218abc7f on cuda | seq-cifar10 class-il T=5 k=2 | class order [4, 6, 2, 7, 3, 5, 9, 0, 8, 1]
+04:00:31 | task 0 epoch 10/50 loss 0.0771
+04:03:02 | task 0 epoch 20/50 loss 0.0385
+04:05:34 | task 0 epoch 30/50 loss 0.0195
+04:08:06 | task 0 epoch 40/50 loss 0.0090
+04:10:38 | task 0 epoch 50/50 loss 0.0056
+04:10:45 | after task 0: class-IL acc per task [0.971] (mean 0.9710) | task-IL mean 0.9710 | train 12.6 min
+04:13:17 | task 1 epoch 10/50 loss 0.0632
+04:15:48 | task 1 epoch 20/50 loss 0.0260
+04:18:20 | task 1 epoch 30/50 loss 0.0162
+04:20:52 | task 1 epoch 40/50 loss 0.0100
+04:23:24 | task 1 epoch 50/50 loss 0.0078
+04:23:25 | after task 1: class-IL acc per task [0.6425, 0.9625] (mean 0.8025) | task-IL mean 0.9597 | train 12.7 min
+04:25:58 | task 2 epoch 10/50 loss 0.1401
+04:28:30 | task 2 epoch 20/50 loss 0.0751
+04:31:02 | task 2 epoch 30/50 loss 0.0476
+04:33:34 | task 2 epoch 40/50 loss 0.0252
+04:36:06 | task 2 epoch 50/50 loss 0.0158
+04:36:08 | after task 2: class-IL acc per task [0.476, 0.4715, 0.8815] (mean 0.6097) | task-IL mean 0.9173 | train 12.7 min
+04:38:40 | task 3 epoch 10/50 loss 0.0219
+04:41:12 | task 3 epoch 20/50 loss 0.0080
+04:43:44 | task 3 epoch 30/50 loss 0.0043
+04:46:16 | task 3 epoch 40/50 loss 0.0034
+04:48:48 | task 3 epoch 50/50 loss 0.0006
+04:48:50 | after task 3: class-IL acc per task [0.595, 0.4615, 0.6145, 0.9795] (mean 0.6626) | task-IL mean 0.9281 | train 12.7 min
+04:51:22 | task 4 epoch 10/50 loss 0.0144
+04:53:53 | task 4 epoch 20/50 loss 0.0082
+04:56:25 | task 4 epoch 30/50 loss 0.0026
+04:58:57 | task 4 epoch 40/50 loss 0.0012
+05:01:29 | task 4 epoch 50/50 loss 0.0009
+05:01:31 | after task 4: class-IL acc per task [0.6595, 0.48, 0.611, 0.548, 0.984] (mean 0.6565) | task-IL mean 0.9215 | train 12.6 min
+05:01:31 | done: final class-IL accuracy 0.6565 -> /kaggle/working/research_project/results/seq-cifar10-er-b500-s0-218abc7f/summary.json
