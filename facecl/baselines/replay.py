@@ -121,7 +121,7 @@ class MIR(ER):
         self.net.eval()  # no BN statistic updates during the virtual step
         loss = self.ce(functional_call(self.net, (params, buffers), (self.aug(x_cur),)), y_cur, self.task)
         grads = torch.autograd.grad(loss, list(params.values()))
-        lr = float(self.cfg["lr"])
+        lr = self.lr()
         virtual = {k: (v - lr * g).detach() for (k, v), g in zip(params.items(), grads)}
         with torch.no_grad():
             xc = self.aug(self.buffer.x[cand], train=False)

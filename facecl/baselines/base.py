@@ -26,7 +26,11 @@ class ContinualMethod:
         self.device = device
         self.aug = Augmenter(bench.crop_padding, bench.hflip)
         self.opt = None
+        self.sched = None
         self.task = 0
+        # mixed precision (fp16 autocast + loss scaling) for training only; evaluation stays fp32
+        self.amp = bool(cfg.get("amp", False)) and torch.device(device).type == "cuda"
+        self.scaler = torch.amp.GradScaler("cuda", enabled=self.amp)
 
     # ---- hooks -------------------------------------------------------------------
     def task_train_data(self, t, x, y):
@@ -35,6 +39,15 @@ class ContinualMethod:
     def begin_task(self, t: int):
         self.task = t
         self.opt = self.make_optimizer()
+        milestones = self.cfg.get("lr_milestones") or []
+        self.sched = (torch.optim.lr_scheduler.MultiStepLR(
+            self.opt, [int(m) for m in milestones], gamma=float(self.cfg.get("lr_gamma", 0.1)))
+            if milestones else None)
+
+    def end_epoch(self, t: int, epoch: int):
+        """Called after every epoch; steps the per-task learning-rate schedule (cfg.lr_milestones)."""
+        if self.sched is not None:
+            self.sched.step()
 
     def end_task(self, t: int, x, y):
         pass
@@ -70,10 +83,22 @@ class ContinualMethod:
             logits = logits[:, : self.n_seen(t)]
         return F.cross_entropy(logits, y)
 
-    def step(self, loss):
+    def lr(self) -> float:
+        """Current learning rate (changes within a task when lr_milestones is set)."""
+        return float(self.opt.param_groups[0]["lr"]) if self.opt is not None else float(self.cfg["lr"])
+
+    def autocast(self):
+        return torch.autocast(device_type="cuda", dtype=torch.float16, enabled=self.amp)
+
+    def step(self, loss, before_step=None):
+        """Backward + optimizer step. `before_step()` sees the unscaled gradients (used by SI)."""
         self.opt.zero_grad(set_to_none=True)
-        loss.backward()
-        self.opt.step()
+        self.scaler.scale(loss).backward()
+        if before_step is not None:
+            self.scaler.unscale_(self.opt)
+            before_step()
+        self.scaler.step(self.opt)
+        self.scaler.update()
 
     def state_dict(self) -> dict:
         return {"net": self.net.state_dict()}

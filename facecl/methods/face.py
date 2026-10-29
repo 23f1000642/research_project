@@ -81,8 +81,9 @@ class FACE(DERpp):
                 logits, feats = self.net(self.aug(self.buffer.x[idx], train=False), return_features=True)
                 self.net.train(was)
                 target = self.forgetting_target(idx, logits, t)
-            pred = self.head(feats)
-            head_loss = F.mse_loss(pred, target)
+            with torch.autocast(device_type=self.device.type, enabled=False):  # small head: fp32
+                pred = self.head(feats.float())
+                head_loss = F.mse_loss(pred, target.float())
             self.head_opt.zero_grad(set_to_none=True)
             head_loss.backward()
             self.head_opt.step()

@@ -126,3 +126,19 @@ def test_per_sample_grads_match_loop():
     for k in ref_sq:
         assert torch.allclose(sq[k], ref_sq[k], atol=1e-6)
         assert torch.allclose(ab[k], ref_ab[k], atol=1e-6)
+
+
+def test_lr_schedule_restarts_every_task(tmp_path):
+    from facecl.baselines import build_method
+    from facecl.models import build_model
+
+    cfg = _cfg("sgd", tmp_path, lr=0.1, lr_milestones=[1, 2], lr_gamma=0.1)
+    bench = build_benchmark(cfg)
+    m = build_method("sgd", build_model(cfg, bench), bench, cfg, "cpu")
+    for t in range(2):
+        m.begin_task(t)
+        lrs = [m.lr()]
+        for ep in range(3):
+            m.end_epoch(t, ep)
+            lrs.append(m.lr())
+        assert np.allclose(lrs, [0.1, 0.01, 0.001, 0.001])

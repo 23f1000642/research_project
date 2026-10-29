@@ -177,13 +177,14 @@ class SI(_QuadraticPenalty):
     def observe(self, x, y, t):
         logits = self.net(self.aug(x))
         loss = self.ce(logits, y, t) + float(self.cfg["c"]) * self.penalty()
-        self.opt.zero_grad(set_to_none=True)
-        loss.backward()
-        lr = float(self.cfg["lr"])
-        for k, p in _params(self.net).items():
-            if p.grad is not None:
-                self.small_omega[k] += lr * p.grad.detach() ** 2
-        self.opt.step()
+        lr = self.lr()
+
+        def accumulate():
+            for k, p in _params(self.net).items():
+                if p.grad is not None:
+                    self.small_omega[k] += lr * p.grad.detach().float() ** 2
+
+        self.step(loss, before_step=accumulate)
         return loss.item()
 
     def end_task(self, t, x, y):

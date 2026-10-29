@@ -21,17 +21,18 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("plan")
     ap.add_argument("--set", nargs="*", default=[], help="config overrides key=value for every run")
-    ap.add_argument("--n-shards", type=int, default=None, help="default: number of visible GPUs")
+    ap.add_argument("--n-shards", type=int, default=None, help="default: visible GPUs x --per-gpu")
+    ap.add_argument("--per-gpu", type=int, default=1,
+                    help="runs sharing one GPU at a time (small-batch runs leave a T4 partly idle)")
     ap.add_argument("--log-dir", default=str(ROOT / "logs"))
     ap.add_argument("--out-dir", default="/kaggle/working" if Path("/kaggle/working").exists() else str(ROOT))
     ap.add_argument("--poll-seconds", type=float, default=60)
     args = ap.parse_args(argv)
 
-    n_shards = args.n_shards
-    if n_shards is None:
-        import torch
+    import torch
 
-        n_shards = max(torch.cuda.device_count(), 1)
+    n_gpus = max(torch.cuda.device_count(), 1)
+    n_shards = args.n_shards or n_gpus * args.per_gpu
     overrides = dict(s.split("=", 1) for s in args.set)
     results_dir = Path(overrides.get("results_dir", ROOT / "results"))
     log_dir = Path(args.log_dir)
@@ -40,7 +41,8 @@ def main(argv=None):
 
     procs, log_paths = [], []
     for shard in range(n_shards):
-        env = dict(os.environ, CUDA_VISIBLE_DEVICES=str(shard))
+        gpu = shard % n_gpus
+        env = dict(os.environ, CUDA_VISIBLE_DEVICES=str(gpu))
         log_path = log_dir / f"shard{shard}_{stem}.log"
         log_paths.append(log_path)
         cmd = [sys.executable, str(ROOT / "experiments" / "run.py"), "--plan", args.plan,
@@ -49,7 +51,7 @@ def main(argv=None):
             cmd += ["--set", *args.set]
         with open(log_path, "a") as log:
             procs.append(subprocess.Popen(cmd, env=env, stdout=log, stderr=subprocess.STDOUT, cwd=ROOT))
-        print(f"shard {shard} -> GPU {shard}: {' '.join(cmd)}", flush=True)
+        print(f"shard {shard} -> GPU {gpu}: {' '.join(cmd)}", flush=True)
 
     t0 = time.time()
     while any(p.poll() is None for p in procs):

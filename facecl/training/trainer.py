@@ -180,7 +180,9 @@ def run(cfg: dict) -> Path:
             for s in range(0, x.shape[0], bs):
                 idx = perm[s:s + bs]
                 xb, yb = x[idx].to(device, non_blocking=True), y[idx].to(device, non_blocking=True)
-                losses.append(method.observe(xb, yb, t))
+                with method.autocast():
+                    losses.append(method.observe(xb, yb, t))
+            method.end_epoch(t, ep)
             if (ep + 1) % int(cfg.get("log_every", 10)) == 0 or ep == epochs - 1:
                 log.info(f"task {t} epoch {ep + 1}/{epochs} loss {np.mean(losses):.4f}")
         method.end_task(t, x, y)

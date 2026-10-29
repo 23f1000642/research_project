@@ -1,0 +1,15 @@
+# S0b: after adding mixed precision (amp) and an optional per-task lr decay.
+# Questions: (1) does amp keep accuracy (DER++ constant lr vs. S0 / published 72.70 ± 1.36)?
+# (2) does decaying the lr at the end of each task shrink the seed-to-seed spread seen in S0
+#     (DER++ seed 1: 69.00 in one run, 58.96 in another)? (3) minutes per run with amp.
+# Launch with --per-gpu 2 (four runs at once on 2xT4); per-run minutes are then for a shared GPU.
+runs:
+  - dataset: seq-cifar10
+    methods: [derpp]
+    buffer_sizes: [500]
+    seeds: [0, 1, 2]
+  - dataset: seq-cifar10
+    methods: [derpp, er]
+    buffer_sizes: [500]
+    seeds: [0, 1, 2]
+    set: {lr_milestones: [35, 45]}
