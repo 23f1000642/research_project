@@ -46,3 +46,12 @@ def test_launcher_failure_is_reported(tmp_path):
     assert proc.returncode == 1
     assert "failed, last lines" in proc.stdout
     assert "no_such_method" in proc.stdout  # the actual error is shown, not just an exit code
+
+
+def test_failing_run_does_not_stop_its_shard(tmp_path):
+    # shard 0 gets [no_such_method, derpp]: derpp must still run after the first run fails
+    proc = _launch(tmp_path, ["no_such_method", "sgd", "derpp"])
+    assert proc.returncode == 1
+    with tarfile.open(tmp_path / "results_plan.tar.gz") as tar:
+        names = tar.getnames()
+    assert sum(n.endswith("summary.json") for n in names) == 2

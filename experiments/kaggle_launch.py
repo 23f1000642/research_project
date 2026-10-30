@@ -39,6 +39,15 @@ def main(argv=None):
     log_dir.mkdir(parents=True, exist_ok=True)
     stem = Path(args.plan).stem
 
+    # download datasets once: parallel shards downloading into the same folder corrupt each other
+    prep = [sys.executable, str(ROOT / "experiments" / "run.py"), "--plan", args.plan, "--prepare"]
+    if args.set:
+        prep += ["--set", *args.set]
+    print("preparing datasets ...", flush=True)
+    if subprocess.run(prep, cwd=ROOT).returncode != 0:
+        print("dataset preparation failed")
+        return 1
+
     procs, log_paths = [], []
     for shard in range(n_shards):
         gpu = shard % n_gpus

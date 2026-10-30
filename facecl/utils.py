@@ -57,7 +57,7 @@ def git_commit() -> str:
         )
         commit = out.stdout.strip() or "unknown"
         dirty = subprocess.run(
-            ["git", "status", "--porcelain", "--untracked-files=no"], cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=10
+            ["git", "status", "--porcelain", "--untracked-files=no", "--", ".", ":!logs", ":!results"], cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=10
         ).stdout.strip()
         return commit + ("-dirty" if dirty else "")
     except (OSError, subprocess.SubprocessError):

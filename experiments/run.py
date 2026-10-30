@@ -10,6 +10,7 @@ Finished runs are skipped automatically, so a plan can be re-launched after a se
 """
 import argparse
 import sys
+import traceback
 from pathlib import Path
 
 import yaml
@@ -17,6 +18,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from facecl.config import load_config, parse_overrides  # noqa: E402
+from facecl.data import build_benchmark  # noqa: E402
 from facecl.evaluation import evaluate_run  # noqa: E402
 from facecl.training import run  # noqa: E402
 
@@ -46,6 +48,8 @@ def main():
     ap.add_argument("--shard", type=int, default=0)
     ap.add_argument("--n-shards", type=int, default=1)
     ap.add_argument("--no-eval", action="store_true", help="skip offline metric computation")
+    ap.add_argument("--prepare", action="store_true",
+                    help="only download/cache the datasets of these runs (do this once before parallel shards)")
     args = ap.parse_args()
 
     common = parse_overrides(args.set)
@@ -54,15 +58,29 @@ def main():
     else:
         seeds = args.seeds if args.seeds else [common.pop("seed", 0)]
         jobs = [(args.dataset, args.method, {**common, "seed": s}) for s in seeds]
+    if args.prepare:
+        for dataset in dict.fromkeys(d for d, _, _ in jobs):
+            ov = next(o for d, _, o in jobs if d == dataset)
+            method = next(m for d, m, _ in jobs if d == dataset)
+            build_benchmark(load_config(dataset, method, ov))
+            print(f"prepared {dataset}")
+        return 0
     jobs = jobs[args.shard::args.n_shards]
     print(f"{len(jobs)} run(s) in this shard")
+    failed = []
     for i, (dataset, method, ov) in enumerate(jobs):
-        print(f"=== [{i + 1}/{len(jobs)}] {dataset} {method} {ov}")
-        cfg = load_config(dataset, method, ov)
-        run_dir = run(cfg)
-        if not args.no_eval:
-            evaluate_run(run_dir)
-
+        print(f"=== [{i + 1}/{len(jobs)}] {dataset} {method} {ov}", flush=True)
+        try:  # one failing run must not take the rest of the shard down with it
+            cfg = load_config(dataset, method, ov)
+            run_dir = run(cfg)
+            if not args.no_eval:
+                evaluate_run(run_dir)
+        except Exception:
+            traceback.print_exc()
+            failed.append(f"{dataset} {method} {ov}")
+    for f in failed:
+        print(f"FAILED: {f}")
+    return 1 if failed else 0
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
