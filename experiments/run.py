@@ -61,8 +61,7 @@ def main():
     if args.prepare:
         for dataset in dict.fromkeys(d for d, _, _ in jobs):
             ov = next(o for d, _, o in jobs if d == dataset)
-            method = next(m for d, m, _ in jobs if d == dataset)
-            build_benchmark(load_config(dataset, method, ov))
+            build_benchmark(load_config(dataset, "sgd", ov))  # data settings do not depend on the method
             print(f"prepared {dataset}")
         return 0
     jobs = jobs[args.shard::args.n_shards]
