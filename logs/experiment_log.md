@@ -6,3 +6,7 @@
 | 2026-10-27 06:29 | seq-cifar10-derpp-b500-s0-3746a110 | seq-cifar10 | derpp | 500 | 0 | complete | 0.7513 | 113.7 | 297a27fd0588950eb95e9383ab5934e596195e1d |
 | 2026-10-27 07:22 | seq-cifar10-derpp-b500-s1-77647581 | seq-cifar10 | derpp | 500 | 1 | complete | 0.5896 | 105.8 | 297a27fd0588950eb95e9383ab5934e596195e1d |
 | 2026-10-27 07:39 | seq-cifar10-er-b500-s1-94aced10 | seq-cifar10 | er | 500 | 1 | complete | 0.5539 | 69.5 | 297a27fd0588950eb95e9383ab5934e596195e1d |
+| 2026-10-30 10:47 | seq-cifar10-derpp-b500-s2-909951fd | seq-cifar10 | derpp | 500 | 2 | complete | 0.7046 | 50.9 | 1155d6bd54eac4de667ac2a8d1638166192ce410 |
+| 2026-10-30 10:47 | seq-cifar10-derpp-b500-s0-e48e883c | seq-cifar10 | derpp | 500 | 0 | complete | 0.7517 | 51.3 | 1155d6bd54eac4de667ac2a8d1638166192ce410 |
+| 2026-10-30 11:17 | seq-cifar10-er-b500-s1-52c8295c | seq-cifar10 | er | 500 | 1 | complete | 0.5607 | 30.2 | 1155d6bd54eac4de667ac2a8d1638166192ce410-dirty |
+| 2026-10-30 11:38 | seq-cifar10-derpp-b500-s2-07306acb | seq-cifar10 | derpp | 500 | 2 | complete | 0.7011 | 51.0 | 1155d6bd54eac4de667ac2a8d1638166192ce410-dirty |
