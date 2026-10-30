@@ -21,6 +21,8 @@ from facecl.config import load_config, parse_overrides  # noqa: E402
 from facecl.data import build_benchmark  # noqa: E402
 from facecl.evaluation import evaluate_run  # noqa: E402
 from facecl.training import run  # noqa: E402
+from facecl.training.trainer import run_id_for  # noqa: E402
+from facecl.utils import PROJECT_ROOT  # noqa: E402
 
 
 def expand_plan(path):
@@ -36,6 +38,15 @@ def expand_plan(path):
                         ov["buffer_size"] = buf
                     jobs.append((block["dataset"], method, ov))
     return jobs
+
+
+def is_complete(dataset, method, ov):
+    try:
+        cfg = load_config(dataset, method, ov)
+    except Exception:
+        return False  # let the run itself report the error
+    path = Path(cfg.get("results_dir", PROJECT_ROOT / "results")) / run_id_for(cfg) / "summary.json"
+    return path.exists() and '"status": "complete"' in path.read_text()
 
 
 def main():
@@ -64,6 +75,8 @@ def main():
             build_benchmark(load_config(dataset, "sgd", ov))  # data settings do not depend on the method
             print(f"prepared {dataset}")
         return 0
+    # drop finished runs before sharding, so the remaining work is spread over every shard
+    jobs = [j for j in jobs if not is_complete(*j)]
     jobs = jobs[args.shard::args.n_shards]
     print(f"{len(jobs)} run(s) in this shard")
     failed = []
