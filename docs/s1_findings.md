@@ -50,5 +50,10 @@ After the last task, on old tasks only:
 ## Consequence
 
 By the decision rule in `phase2_method.md`, H1 as stated is false. Changing H1 after seeing the data
-would be a post-hoc hypothesis and must be labelled as such. Options are discussed with the user;
-nothing is decided in this document.
+would be a post-hoc hypothesis and must be labelled as such.
+
+**Decision (with the user, after S1):** do not switch to D2 yet. Re-focus on the part that held
+(old-task error detection collapses at the first task switch; one global temperature does not fix
+it), state openly in the paper that this focus was chosen after S1, and run a small FACE pilot
+(S2a, `experiments/plans/s2a_face_pilot.yaml`) with a go/no-go rule fixed in advance in
+`analysis/h3_pilot_test.py`. NO-GO there means switching to D2.

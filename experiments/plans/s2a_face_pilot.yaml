@@ -1,0 +1,8 @@
+# S2a: FACE go/no-go pilot on seq-CIFAR-100 (decision rule: analysis/h3_pilot_test.py, committed
+# before these runs). The DER++ runs are the S1 runs (same config -> same run ids -> skipped), so
+# only the 6 FACE runs are trained.
+runs:
+  - dataset: seq-cifar100
+    methods: [derpp, face]
+    buffer_sizes: [500, 2000]
+    seeds: [0, 1, 2]
