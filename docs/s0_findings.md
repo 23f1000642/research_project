@@ -66,3 +66,12 @@ and has to be recomputed before S1.
   ER takes ~30 min alone.
 - The H1 pattern is unchanged with 3 seeds: ER old tasks 49.6 % accurate at 93.1 % confidence,
   DER++ 67.2 % at 86.6 %; DER++ old-task error-detection AUROC 76.5 vs. ER 71.1.
+
+## H1 test written before S1 (dry run on these CIFAR-10 runs)
+
+`analysis/h1_test.py` fixes the H1 statistic and decision rule before the S1 results exist (see its
+docstring; committed before S1 finished). On the 13 CIFAR-10 ER/DER++ runs above it reports H1
+supported (CER@0.9 slope +3.1 points per task of age, p = 0.02; AUROC slope −9.3, p < 0.001), but:
+- the AUROC drop is mostly one jump at the first task switch (age 0 → 1), then roughly flat;
+- for DER++ the CER part is absent (slope −0.9 to +1.6): its old-task errors do not get more
+  confident with age. Only ER shows a clear rise. This is again weakness #1 of `phase2_method.md`.
