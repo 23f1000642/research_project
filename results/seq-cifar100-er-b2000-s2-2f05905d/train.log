@@ -1,0 +1,62 @@
+17:20:36 | run seq-cifar100-er-b2000-s2-2f05905d on cuda | seq-cifar100 class-il T=10 k=10 | class order [90, 92, 7, 14, 47, 10, 52, 56, 91, 84, 69, 34, 79, 61, 25, 48, 73, 88, 59, 94, 28, 5, 53, 11, 13, 42, 76, 71, 6, 66, 18, 86, 45, 78, 81, 19, 21, 40, 54, 39, 27, 51, 8, 3, 68, 95, 15, 35, 12, 32, 33, 38, 23, 20, 9, 49, 26, 97, 4, 99, 41, 89, 82, 55, 80, 93, 43, 63, 0, 70, 60, 44, 62, 67, 58, 74, 64, 36, 46, 16, 24, 98, 77, 87, 22, 1, 2, 57, 50, 75, 96, 17, 83, 37, 85, 29, 31, 30, 72, 65]
+17:21:12 | task 0 epoch 10/50 loss 0.4358
+17:21:47 | task 0 epoch 20/50 loss 0.1400
+17:22:23 | task 0 epoch 30/50 loss 0.0714
+17:22:58 | task 0 epoch 40/50 loss 0.0332
+17:23:33 | task 0 epoch 50/50 loss 0.0230
+17:23:34 | after task 0: class-IL acc per task [0.816] (mean 0.8160) | task-IL mean 0.8160 | train 3.0 min
+17:24:10 | task 1 epoch 10/50 loss 0.2116
+17:24:45 | task 1 epoch 20/50 loss 0.0878
+17:25:20 | task 1 epoch 30/50 loss 0.0301
+17:25:56 | task 1 epoch 40/50 loss 0.0185
+17:26:31 | task 1 epoch 50/50 loss 0.0069
+17:26:32 | after task 1: class-IL acc per task [0.656, 0.889] (mean 0.7725) | task-IL mean 0.8790 | train 2.9 min
+17:27:07 | task 2 epoch 10/50 loss 0.1150
+17:27:43 | task 2 epoch 20/50 loss 0.0327
+17:28:18 | task 2 epoch 30/50 loss 0.0193
+17:28:53 | task 2 epoch 40/50 loss 0.0088
+17:29:29 | task 2 epoch 50/50 loss 0.0069
+17:29:30 | after task 2: class-IL acc per task [0.543, 0.622, 0.882] (mean 0.6823) | task-IL mean 0.8763 | train 2.9 min
+17:30:05 | task 3 epoch 10/50 loss 0.1328
+17:30:40 | task 3 epoch 20/50 loss 0.0449
+17:31:16 | task 3 epoch 30/50 loss 0.0129
+17:31:51 | task 3 epoch 40/50 loss 0.0099
+17:32:26 | task 3 epoch 50/50 loss 0.0050
+17:32:28 | after task 3: class-IL acc per task [0.499, 0.626, 0.647, 0.853] (mean 0.6562) | task-IL mean 0.8840 | train 2.9 min
+17:33:03 | task 4 epoch 10/50 loss 0.0907
+17:33:38 | task 4 epoch 20/50 loss 0.0306
+17:34:14 | task 4 epoch 30/50 loss 0.0117
+17:34:49 | task 4 epoch 40/50 loss 0.0057
+17:35:24 | task 4 epoch 50/50 loss 0.0043
+17:35:26 | after task 4: class-IL acc per task [0.473, 0.529, 0.578, 0.542, 0.868] (mean 0.5980) | task-IL mean 0.8702 | train 2.9 min
+17:36:01 | task 5 epoch 10/50 loss 0.0868
+17:36:37 | task 5 epoch 20/50 loss 0.0249
+17:37:12 | task 5 epoch 30/50 loss 0.0092
+17:37:47 | task 5 epoch 40/50 loss 0.0054
+17:38:22 | task 5 epoch 50/50 loss 0.0064
+17:38:24 | after task 5: class-IL acc per task [0.455, 0.476, 0.515, 0.457, 0.538, 0.866] (mean 0.5512) | task-IL mean 0.8587 | train 2.9 min
+17:39:00 | task 6 epoch 10/50 loss 0.0765
+17:39:35 | task 6 epoch 20/50 loss 0.0208
+17:40:11 | task 6 epoch 30/50 loss 0.0102
+17:40:46 | task 6 epoch 40/50 loss 0.0058
+17:41:21 | task 6 epoch 50/50 loss 0.0015
+17:41:24 | after task 6: class-IL acc per task [0.392, 0.473, 0.472, 0.392, 0.451, 0.55, 0.854] (mean 0.5120) | task-IL mean 0.8557 | train 2.9 min
+17:41:59 | task 7 epoch 10/50 loss 0.0719
+17:42:34 | task 7 epoch 20/50 loss 0.0154
+17:43:09 | task 7 epoch 30/50 loss 0.0055
+17:43:45 | task 7 epoch 40/50 loss 0.0077
+17:44:20 | task 7 epoch 50/50 loss 0.0017
+17:44:23 | after task 7: class-IL acc per task [0.363, 0.449, 0.374, 0.345, 0.353, 0.434, 0.487, 0.851] (mean 0.4570) | task-IL mean 0.8450 | train 2.9 min
+17:44:58 | task 8 epoch 10/50 loss 0.0687
+17:45:33 | task 8 epoch 20/50 loss 0.0098
+17:46:08 | task 8 epoch 30/50 loss 0.0061
+17:46:44 | task 8 epoch 40/50 loss 0.0019
+17:47:19 | task 8 epoch 50/50 loss 0.0021
+17:47:22 | after task 8: class-IL acc per task [0.343, 0.383, 0.38, 0.294, 0.358, 0.403, 0.489, 0.44, 0.859] (mean 0.4388) | task-IL mean 0.8321 | train 2.9 min
+17:47:57 | task 9 epoch 10/50 loss 0.0556
+17:48:32 | task 9 epoch 20/50 loss 0.0132
+17:49:08 | task 9 epoch 30/50 loss 0.0034
+17:49:43 | task 9 epoch 40/50 loss 0.0039
+17:50:18 | task 9 epoch 50/50 loss 0.0037
+17:50:21 | after task 9: class-IL acc per task [0.239, 0.355, 0.333, 0.283, 0.252, 0.31, 0.389, 0.367, 0.508, 0.841] (mean 0.3877) | task-IL mean 0.8161 | train 2.9 min
+17:50:21 | done: final class-IL accuracy 0.3877 -> /kaggle/working/research_project/results/seq-cifar100-er-b2000-s2-2f05905d/summary.json

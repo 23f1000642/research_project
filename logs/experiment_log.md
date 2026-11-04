@@ -15,3 +15,15 @@
 | 2026-11-04 13:31 | seq-cifar10-derpp-b500-s1-23b641bb | seq-cifar10 | derpp | 500 | 1 | complete | 0.6828 | 105.4 | d8fff89ce134cad70bed8223451c74abed0c2820 |
 | 2026-11-04 13:31 | seq-cifar10-derpp-b500-s1-7281e6fc | seq-cifar10 | derpp | 500 | 1 | complete | 0.6893 | 105.9 | d8fff89ce134cad70bed8223451c74abed0c2820 |
 | 2026-11-04 13:41 | seq-cifar10-er-b500-s2-350da407 | seq-cifar10 | er | 500 | 2 | complete | 0.5683 | 30.2 | d8fff89ce134cad70bed8223451c74abed0c2820 |
+| 2026-11-04 15:21 | seq-cifar100-er-b500-s0-8c11cb2d | seq-cifar100 | er | 500 | 0 | complete | 0.2369 | 30.0 | 612bbadbd2c3956a47746aba3bc2251fee5e00e4 |
+| 2026-11-04 15:42 | seq-cifar100-derpp-b500-s0-64109e9a | seq-cifar100 | derpp | 500 | 0 | complete | 0.3727 | 50.8 | 612bbadbd2c3956a47746aba3bc2251fee5e00e4 |
+| 2026-11-04 15:51 | seq-cifar100-er-b2000-s0-297bf86b | seq-cifar100 | er | 2000 | 0 | complete | 0.4021 | 29.4 | 612bbadbd2c3956a47746aba3bc2251fee5e00e4 |
+| 2026-11-04 16:21 | seq-cifar100-er-b500-s1-bbafdbb4 | seq-cifar100 | er | 500 | 1 | complete | 0.1976 | 29.4 | 612bbadbd2c3956a47746aba3bc2251fee5e00e4 |
+| 2026-11-04 16:33 | seq-cifar100-derpp-b2000-s0-960ef6a6 | seq-cifar100 | derpp | 2000 | 0 | complete | 0.5308 | 50.6 | 612bbadbd2c3956a47746aba3bc2251fee5e00e4 |
+| 2026-11-04 16:50 | seq-cifar100-er-b2000-s1-8c48550e | seq-cifar100 | er | 2000 | 1 | complete | 0.3836 | 29.4 | 612bbadbd2c3956a47746aba3bc2251fee5e00e4 |
+| 2026-11-04 17:20 | seq-cifar100-er-b500-s2-3b35f2ba | seq-cifar100 | er | 500 | 2 | complete | 0.2208 | 29.4 | 612bbadbd2c3956a47746aba3bc2251fee5e00e4 |
+| 2026-11-04 17:24 | seq-cifar100-derpp-b500-s1-8e110d0f | seq-cifar100 | derpp | 500 | 1 | complete | 0.3825 | 50.6 | 612bbadbd2c3956a47746aba3bc2251fee5e00e4 |
+| 2026-11-04 17:50 | seq-cifar100-er-b2000-s2-2f05905d | seq-cifar100 | er | 2000 | 2 | complete | 0.3877 | 29.4 | 612bbadbd2c3956a47746aba3bc2251fee5e00e4 |
+| 2026-11-04 18:15 | seq-cifar100-derpp-b2000-s1-f3527c83 | seq-cifar100 | derpp | 2000 | 1 | complete | 0.5041 | 50.3 | 612bbadbd2c3956a47746aba3bc2251fee5e00e4 |
+| 2026-11-04 19:05 | seq-cifar100-derpp-b500-s2-3407fbce | seq-cifar100 | derpp | 500 | 2 | complete | 0.3522 | 50.0 | 612bbadbd2c3956a47746aba3bc2251fee5e00e4 |
+| 2026-11-04 19:55 | seq-cifar100-derpp-b2000-s2-0d4b7dcf | seq-cifar100 | derpp | 2000 | 2 | complete | 0.5270 | 50.1 | 612bbadbd2c3956a47746aba3bc2251fee5e00e4 |

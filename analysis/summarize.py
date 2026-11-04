@@ -66,21 +66,21 @@ def main(argv=None):
                      f"{f'{pub[0]:.2f} ± {pub[1]:.2f}' if pub else '-'} | {ms(minutes)} |")
 
     lines += ["", "## Old-class uncertainty after the last task (MSP; TS = temperature-scaled MSP)", "",
-              "| method | buffer | variant | acc old | mean conf old | ECE old | ECE old (TS) | AUROC old | AUROC old (energy) "
+              "| dataset | method | buffer | variant | acc old | mean conf old | ECE old | ECE old (TS) | AUROC old | AUROC old (energy) "
               "| CER@0.9 old | CER@0.9 old (TS) | UF (MSP) |",
-              "|---|---|---|---|---|---|---|---|---|---|---|---|"]
+              "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for key, rs in sorted(groups.items()):
         f = lambda score, k: [m["final"][score][k] for _, m in rs]
         acc_old = [np.mean(s["acc_class_il"][-1][:-1]) for s, _ in rs]
-        lines.append(f"| {key[1]} | {key[2]} | {key[3]} | {ms(acc_old, 100)} | {ms(f('msp', 'mean_conf_old'), 100)} | "
+        lines.append(f"| {key[0]} | {key[1]} | {key[2]} | {key[3]} | {ms(acc_old, 100)} | {ms(f('msp', 'mean_conf_old'), 100)} | "
                      f"{ms(f('msp', 'ece_old'), 100)} | {ms(f('msp_ts', 'ece_old'), 100)} | "
                      f"{ms(f('msp', 'auroc_old'), 100)} | {ms(f('energy', 'auroc_old'), 100)} | "
                      f"{ms(f('msp', 'cer_0.9_old'), 100)} | {ms(f('msp_ts', 'cer_0.9_old'), 100)} | "
                      f"{ms([m['uncertainty_forgetting']['msp'] for _, m in rs], 100)} |")
 
     lines += ["", "## By task age after the last task (age 0 = current task; MSP, %, mean over seeds)", "",
-              "| method | buffer | variant | age | accuracy | mean confidence | gap (conf - acc) | ECE | AUROC |",
-              "|---|---|---|---|---|---|---|---|---|"]
+              "| dataset | method | buffer | variant | age | accuracy | mean confidence | gap (conf - acc) | ECE | AUROC |",
+              "|---|---|---|---|---|---|---|---|---|---|"]
     for key, rs in sorted(groups.items()):
         n_tasks = len(rs[0][0]["acc_class_il"][-1])
         for age in range(n_tasks):
@@ -88,7 +88,7 @@ def main(argv=None):
             acc = [s["acc_class_il"][-1][j] for s, _ in rs]
             per = lambda k: [m["per_task"]["msp"][k][-1][j] for _, m in rs]
             conf = per("mean_conf")
-            lines.append(f"| {key[1]} | {key[2]} | {key[3]} | {age} | {ms(acc, 100)} | {ms(conf, 100)} | "
+            lines.append(f"| {key[0]} | {key[1]} | {key[2]} | {key[3]} | {age} | {ms(acc, 100)} | {ms(conf, 100)} | "
                          f"{ms(np.subtract(conf, acc), 100)} | {ms(per('ece'), 100)} | {ms(per('auroc'), 100)} |")
 
     text = "\n".join(lines) + "\n"
