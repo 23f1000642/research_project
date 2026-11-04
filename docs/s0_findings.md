@@ -45,3 +45,24 @@ After the last task, MSP confidence vs. accuracy on old tasks (mean of 2 seeds, 
 
 SGD 36, ER 66, DER++ 110. The compute budget in `phase3_experimental_design.md` is too low by ~3x
 and has to be recomputed before S1.
+
+## S0b re-check: mixed precision and per-task lr decay (commit `d8fff89`, 3 seeds each)
+
+| DER++ variant | s0 / s1 / s2 | mean ± std | published |
+|---|---|---|---|
+| amp, constant lr | 74.98 / 68.28 / 70.46 | 71.24 ± 3.42 | 72.70 ± 1.36 |
+| amp, lr ×0.1 at epochs 35, 45 | 75.17 / 68.93 / 70.11 | 71.40 ± 3.31 | |
+| ER, amp + lr decay | 64.75 / 56.07 / 56.83 | 59.22 ± 4.81 | 57.74 ± 0.27 |
+
+- **Mixed precision keeps accuracy**: DER++ 71.2 vs. published 72.7, inside one standard deviation.
+- **The lr decay does not reduce the seed-to-seed spread** (3.42 vs. 3.31) and changes neither
+  accuracy nor old-class uncertainty metrics. Decision: keep the constant learning rate of the DER
+  protocol (`lr_milestones: []`). The 58.96 of the fp32 seed-1 run was not reproduced (68.3 with amp).
+- Our spread (≈3.4) is larger than the published ±1.36. A likely contributor (not tested): we draw a
+  new class order per seed, while the DER paper keeps one fixed order. This must be reported, and
+  the main comparisons need ≥5–10 seeds with paired tests (same seed = same class order across methods).
+- **Speed**: one DER++ run alone on a T4 takes ~51 min with amp vs. ~110 min in fp32 (2.15×).
+  Two runs sharing one T4 each take ~106 min, i.e. no throughput gain; `--per-gpu 1` from now on.
+  ER takes ~30 min alone.
+- The H1 pattern is unchanged with 3 seeds: ER old tasks 49.6 % accurate at 93.1 % confidence,
+  DER++ 67.2 % at 86.6 %; DER++ old-task error-detection AUROC 76.5 vs. ER 71.1.
