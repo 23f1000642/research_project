@@ -1,7 +1,7 @@
 """Summarise finished runs: accuracy vs published numbers, final old-class uncertainty quality, and
 confidence/accuracy by task age (the first look at H1, "confident forgetting").
 
-    python analysis/summarize.py results [--out tables/s0_summary.md]
+    python analysis/summarize.py results [--out tables/summary.md]
 """
 import argparse
 import json
