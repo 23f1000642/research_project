@@ -27,3 +27,9 @@
 | 2026-11-04 18:15 | seq-cifar100-derpp-b2000-s1-f3527c83 | seq-cifar100 | derpp | 2000 | 1 | complete | 0.5041 | 50.3 | 612bbadbd2c3956a47746aba3bc2251fee5e00e4 |
 | 2026-11-04 19:05 | seq-cifar100-derpp-b500-s2-3407fbce | seq-cifar100 | derpp | 500 | 2 | complete | 0.3522 | 50.0 | 612bbadbd2c3956a47746aba3bc2251fee5e00e4 |
 | 2026-11-04 19:55 | seq-cifar100-derpp-b2000-s2-0d4b7dcf | seq-cifar100 | derpp | 2000 | 2 | complete | 0.5270 | 50.1 | 612bbadbd2c3956a47746aba3bc2251fee5e00e4 |
+| 2026-11-05 05:53 | seq-cifar100-face-b500-s0-8776390c | seq-cifar100 | face | 500 | 0 | complete | 0.3635 | 63.4 | 61d12a3ea3d8293beab402643b22d5cef1e5e5ce |
+| 2026-11-05 05:53 | seq-cifar100-face-b2000-s0-bfbd2bc3 | seq-cifar100 | face | 2000 | 0 | complete | 0.5193 | 63.6 | 61d12a3ea3d8293beab402643b22d5cef1e5e5ce |
+| 2026-11-05 06:57 | seq-cifar100-face-b500-s1-28b4b59a | seq-cifar100 | face | 500 | 1 | complete | 0.3397 | 63.3 | 61d12a3ea3d8293beab402643b22d5cef1e5e5ce |
+| 2026-11-05 06:57 | seq-cifar100-face-b2000-s1-17bd0ae9 | seq-cifar100 | face | 2000 | 1 | complete | 0.5034 | 63.4 | 61d12a3ea3d8293beab402643b22d5cef1e5e5ce |
+| 2026-11-05 08:00 | seq-cifar100-face-b500-s2-254df510 | seq-cifar100 | face | 500 | 2 | complete | 0.3548 | 63.3 | 61d12a3ea3d8293beab402643b22d5cef1e5e5ce |
+| 2026-11-05 08:01 | seq-cifar100-face-b2000-s2-71dd9535 | seq-cifar100 | face | 2000 | 2 | complete | 0.5072 | 63.4 | 61d12a3ea3d8293beab402643b22d5cef1e5e5ce |
