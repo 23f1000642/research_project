@@ -8,7 +8,7 @@ import warnings
 import numpy as np
 from scipy.optimize import minimize_scalar
 from scipy.special import log_softmax, softmax
-from sklearn.metrics import roc_auc_score
+from scipy.stats import rankdata
 
 
 # ---- continual-learning accuracy metrics --------------------------------------------
@@ -90,7 +90,10 @@ def auroc_error(conf, correct) -> float:
     correct = np.asarray(correct, bool)
     if correct.all() or (~correct).all():
         return float("nan")
-    return float(roc_auc_score(~correct, -np.asarray(conf, float)))
+    # Mann-Whitney form of the ROC AUC (ties count 1/2), identical to sklearn's roc_auc_score
+    ranks = rankdata(-np.asarray(conf, float))
+    n_err, n_ok = (~correct).sum(), correct.sum()
+    return float((ranks[~correct].sum() - n_err * (n_err + 1) / 2) / (n_err * n_ok))
 
 
 def risk_coverage(conf, correct):

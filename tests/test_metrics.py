@@ -48,3 +48,12 @@ def test_temperature_recovers_scale():
 def test_uncertainty_forgetting():
     rows = [[0.9], [0.7, 0.85], [0.6, 0.8, 0.9]]
     assert M.forgetting_of(rows) == pytest.approx(((0.9 - 0.6) + (0.85 - 0.8)) / 2)
+
+
+def test_auroc_matches_pairwise_definition_with_ties():
+    rng = np.random.default_rng(0)
+    conf = rng.integers(0, 5, 200) / 4.0  # many ties
+    correct = rng.random(200) < 0.6
+    err, ok = -conf[~correct], -conf[correct]  # uncertainty = -conf, positives = errors
+    pairwise = ((err[:, None] > ok[None, :]) + 0.5 * (err[:, None] == ok[None, :])).mean()
+    assert M.auroc_error(conf, correct) == pytest.approx(pairwise)
