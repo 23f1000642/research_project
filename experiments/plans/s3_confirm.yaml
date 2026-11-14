@@ -1,0 +1,12 @@
+# S3: confirmation runs for the post-hoc RQ1 findings (rule: analysis/confirm_test.py, committed
+# before these runs). Only new runs: unseen seeds for ER / DER++, and two methods never analysed
+# (MIR: ER-based; iCaRL: nearest-mean classifier, expected low recency bias).
+runs:
+  - dataset: seq-cifar100
+    methods: [er, derpp]
+    buffer_sizes: [500, 2000]
+    seeds: [3, 4]
+  - dataset: seq-cifar100
+    methods: [mir, icarl]
+    buffer_sizes: [2000]
+    seeds: [0, 1, 2]

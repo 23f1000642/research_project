@@ -61,3 +61,12 @@ supported. What is supported is narrower and conditional: a single temperature d
 failure detection (even an oracle one), and task-aware temperatures trade calibration for
 detection in a method-dependent way. These three points come from post-hoc inspection and need
 confirmation on new runs before they are claims.
+
+## Follow-up: recency bias (exploratory, `analysis/recency.py`, `tables/recency.md`)
+
+Share of old-class errors that predict a current-task class (uniform errors would give
+k/(N−1): 22 % on CIFAR-10, 10 % on CIFAR-100): ER 72–88 %, DER++ 35–54 %. Across the 25 runs the
+share almost perfectly orders the gain of task-wise TS in failure detection (Spearman ρ = +0.95).
+This was found after looking at the data. It and the other post-hoc points are tested on new
+runs only, with the rule in `analysis/confirm_test.py` (plan `experiments/plans/s3_confirm.yaml`:
+ER / DER++ seeds 3–4 at buffers 500 / 2000, MIR and iCaRL at buffer 2000, seeds 0–2).

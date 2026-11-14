@@ -36,6 +36,13 @@ class ICaRL(ContinualMethod):
         super().begin_task(t)
         self.class_means = None
 
+    def buffer_snapshot(self):
+        n = self.mem_x.shape[0]
+        if n == 0:
+            return None
+        return {"x": self.mem_x, "y": self.mem_y, "task": self.mem_y // self.bench.classes_per_task,
+                "probe": torch.zeros(n, dtype=torch.bool, device=self.mem_y.device)}
+
     def observe(self, x, y, t):
         xa = self.aug(x)
         n_seen = self.n_seen(t)
