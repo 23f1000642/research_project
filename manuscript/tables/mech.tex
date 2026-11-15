@@ -1,0 +1,12 @@
+\begin{table}[t]\centering\small
+\caption{Why task-TS behaves as it does (post-hoc analysis over all 39 runs). Temperatures fitted on the legal calibration set; $T_\mathrm{old}$ is the mean over old tasks. \emph{Rule}: rank predictions in an old task above predictions in the current task, ties broken by MSP. Last column: Pearson correlation, over runs, of the AUROC$_\mathrm{all}$ gains of task-TS and of the rule.}\label{tab:mech}
+\begin{tabular}{lc c ccc ccc c}\toprule
+ & & buffer & \multicolumn{3}{c}{temperature} & \multicolumn{3}{c}{AUROC$_\mathrm{all}$} & \\
+\cmidrule(lr){4-6}\cmidrule(lr){7-9}
+method & $n$ & acc. (\%) & global & $T_\mathrm{old}$ & $T_\mathrm{cur}$ & MSP & task-TS & rule & corr.\\\midrule
+ER & 15 & 100.0 & 2.02 & 0.15 & 2.15 & 73.1 & 86.5 & 86.8 & +1.00\\
+MIR & 3 & 100.0 & 1.77 & 0.11 & 2.01 & 74.0 & 86.8 & 87.2 & +1.00\\
+DER++ & 18 & 99.9 & 1.12 & 0.12 & 1.20 & 78.4 & 75.7 & 77.1 & +0.98\\
+iCaRL & 3 & 63.0 & 0.43 & 0.38 & 0.54 & 75.5 & 76.7 & 71.2 & -0.83\\
+\bottomrule\end{tabular}
+\end{table}

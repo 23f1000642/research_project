@@ -1,0 +1,17 @@
+\begin{table*}[t]\centering\small
+\caption{Exploratory runs (used to form the hypotheses), same quantities as Table~\ref{tab:confirm}. Uniform-error recency baseline: 22\% on S-CIFAR-10, 10\% on S-CIFAR-100.}\label{tab:explore}
+\resizebox{\linewidth}{!}{\begin{tabular}{lllc c ccc ccc}\toprule
+ & & & & recency & \multicolumn{3}{c}{AUROC$_\mathrm{all}$ ($\uparrow$)} & \multicolumn{3}{c}{ECE$_\mathrm{all}$ ($\downarrow$)}\\
+\cmidrule(lr){6-8}\cmidrule(lr){9-11}
+benchmark & method & $|M|$ & $n$ & share (\%) & MSP & TS & task-TS & MSP & TS & task-TS\\\midrule
+S-CIFAR-10 & ER (lr decay) & 500 & 3 & 71.8{\scriptsize$\pm$15.0} & 78.2{\scriptsize$\pm$2.7} & 78.8{\scriptsize$\pm$2.8} & 84.4{\scriptsize$\pm$4.3} & 35.1{\scriptsize$\pm$5.0} & 27.2{\scriptsize$\pm$5.9} & 33.7{\scriptsize$\pm$4.1}\\
+S-CIFAR-10 & ER (fp32) & 500 & 2 & 73.2{\scriptsize$\pm$15.7} & 77.6{\scriptsize$\pm$4.8} & 78.3{\scriptsize$\pm$5.0} & 84.7{\scriptsize$\pm$2.8} & 34.3{\scriptsize$\pm$8.2} & 26.5{\scriptsize$\pm$9.2} & 32.8{\scriptsize$\pm$6.9}\\
+S-CIFAR-10 & DER++ & 500 & 3 & 34.8{\scriptsize$\pm$15.5} & 80.2{\scriptsize$\pm$2.1} & 80.2{\scriptsize$\pm$2.2} & 67.1{\scriptsize$\pm$5.6} & 16.9{\scriptsize$\pm$3.7} & 11.0{\scriptsize$\pm$2.7} & 23.6{\scriptsize$\pm$2.3}\\
+S-CIFAR-10 & DER++ (lr decay) & 500 & 3 & 37.9{\scriptsize$\pm$20.5} & 79.8{\scriptsize$\pm$2.3} & 79.7{\scriptsize$\pm$2.5} & 69.6{\scriptsize$\pm$6.9} & 16.7{\scriptsize$\pm$4.1} & 12.1{\scriptsize$\pm$5.8} & 23.9{\scriptsize$\pm$2.5}\\
+S-CIFAR-10 & DER++ (fp32) & 500 & 2 & 46.1{\scriptsize$\pm$24.7} & 76.5{\scriptsize$\pm$8.6} & 76.5{\scriptsize$\pm$8.7} & 72.7{\scriptsize$\pm$5.9} & 20.0{\scriptsize$\pm$10.9} & 11.1{\scriptsize$\pm$8.4} & 23.8{\scriptsize$\pm$4.6}\\
+S-CIFAR-100 & ER & 500 & 3 & 88.4{\scriptsize$\pm$1.4} & 67.3{\scriptsize$\pm$1.5} & 69.0{\scriptsize$\pm$1.3} & 88.0{\scriptsize$\pm$0.2} & 62.4{\scriptsize$\pm$2.1} & 44.3{\scriptsize$\pm$1.7} & 50.6{\scriptsize$\pm$0.9}\\
+S-CIFAR-100 & ER & 2000 & 3 & 72.9{\scriptsize$\pm$3.5} & 74.0{\scriptsize$\pm$1.0} & 75.2{\scriptsize$\pm$1.0} & 86.2{\scriptsize$\pm$0.8} & 45.1{\scriptsize$\pm$1.0} & 32.6{\scriptsize$\pm$1.0} & 42.2{\scriptsize$\pm$0.4}\\
+S-CIFAR-100 & DER++ & 500 & 3 & 54.2{\scriptsize$\pm$8.5} & 75.8{\scriptsize$\pm$2.3} & 75.8{\scriptsize$\pm$2.3} & 80.8{\scriptsize$\pm$1.5} & 16.9{\scriptsize$\pm$3.1} & 23.8{\scriptsize$\pm$2.8} & 44.4{\scriptsize$\pm$0.3}\\
+S-CIFAR-100 & DER++ & 2000 & 3 & 38.2{\scriptsize$\pm$7.6} & 81.0{\scriptsize$\pm$0.7} & 80.9{\scriptsize$\pm$0.7} & 79.6{\scriptsize$\pm$1.5} & 14.2{\scriptsize$\pm$2.0} & 14.8{\scriptsize$\pm$2.1} & 36.2{\scriptsize$\pm$0.6}\\
+\bottomrule\end{tabular}}
+\end{table*}

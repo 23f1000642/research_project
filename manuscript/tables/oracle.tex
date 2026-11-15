@@ -1,0 +1,10 @@
+\begin{table}[t]\centering\small
+\caption{Old classes only, task-independent scores (where old-class AUROC is valid). Oracle TS is fitted on the evaluated old-class test data itself and is an upper bound for any single temperature. Mean over runs; relative ECE change is averaged per run.}\label{tab:oracle}
+\begin{tabular}{lc ccc ccc}\toprule
+ & & \multicolumn{3}{c}{ECE$_\mathrm{old}$} & \multicolumn{3}{c}{AUROC$_\mathrm{old}$}\\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}
+set & $n$ & MSP & TS & oracle TS & MSP & TS & oracle TS\\\midrule
+exploratory & 25 & 33.4{\scriptsize$\pm$18.6} & 26.4{\scriptsize$\pm$13.2} & 5.8{\scriptsize$\pm$2.1} & 71.8{\scriptsize$\pm$7.9} & 72.4{\scriptsize$\pm$7.2} & 73.8{\scriptsize$\pm$5.9}\\
+confirmatory & 14 & 39.1{\scriptsize$\pm$18.0} & 29.8{\scriptsize$\pm$14.9} & 5.2{\scriptsize$\pm$2.9} & 69.6{\scriptsize$\pm$8.6} & 70.8{\scriptsize$\pm$8.2} & 72.6{\scriptsize$\pm$6.4}\\
+\bottomrule\end{tabular}
+\end{table}
