@@ -33,3 +33,17 @@
 | 2026-11-05 06:57 | seq-cifar100-face-b2000-s1-17bd0ae9 | seq-cifar100 | face | 2000 | 1 | complete | 0.5034 | 63.4 | 61d12a3ea3d8293beab402643b22d5cef1e5e5ce |
 | 2026-11-05 08:00 | seq-cifar100-face-b500-s2-254df510 | seq-cifar100 | face | 500 | 2 | complete | 0.3548 | 63.3 | 61d12a3ea3d8293beab402643b22d5cef1e5e5ce |
 | 2026-11-05 08:01 | seq-cifar100-face-b2000-s2-71dd9535 | seq-cifar100 | face | 2000 | 2 | complete | 0.5072 | 63.4 | 61d12a3ea3d8293beab402643b22d5cef1e5e5ce |
+| 2026-11-14 20:13 | seq-cifar100-er-b500-s3-448e1569 | seq-cifar100 | er | 500 | 3 | complete | 0.1979 | 29.8 | 0a2995edc6b17b2e23f99d8a63c8eebdc1200458 |
+| 2026-11-14 20:34 | seq-cifar100-derpp-b500-s3-5eae9ae1 | seq-cifar100 | derpp | 500 | 3 | complete | 0.3573 | 50.1 | 0a2995edc6b17b2e23f99d8a63c8eebdc1200458 |
+| 2026-11-14 20:43 | seq-cifar100-er-b2000-s3-f91d8385 | seq-cifar100 | er | 2000 | 3 | complete | 0.3795 | 29.1 | 0a2995edc6b17b2e23f99d8a63c8eebdc1200458 |
+| 2026-11-14 21:12 | seq-cifar100-er-b500-s4-69956daa | seq-cifar100 | er | 500 | 4 | complete | 0.2274 | 29.1 | 0a2995edc6b17b2e23f99d8a63c8eebdc1200458 |
+| 2026-11-14 21:24 | seq-cifar100-derpp-b2000-s3-9a1c22a4 | seq-cifar100 | derpp | 2000 | 3 | complete | 0.5107 | 49.6 | 0a2995edc6b17b2e23f99d8a63c8eebdc1200458 |
+| 2026-11-14 21:42 | seq-cifar100-er-b2000-s4-eac70d7f | seq-cifar100 | er | 2000 | 4 | complete | 0.3925 | 29.2 | 0a2995edc6b17b2e23f99d8a63c8eebdc1200458 |
+| 2026-11-14 22:14 | seq-cifar100-derpp-b500-s4-2303d83e | seq-cifar100 | derpp | 500 | 4 | complete | 0.3690 | 49.7 | 0a2995edc6b17b2e23f99d8a63c8eebdc1200458 |
+| 2026-11-14 22:44 | seq-cifar100-mir-b2000-s0-a67eb829 | seq-cifar100 | mir | 2000 | 0 | complete | 0.4039 | 61.6 | 0a2995edc6b17b2e23f99d8a63c8eebdc1200458 |
+| 2026-11-14 23:04 | seq-cifar100-derpp-b2000-s4-28388ffe | seq-cifar100 | derpp | 2000 | 4 | complete | 0.4590 | 49.7 | 0a2995edc6b17b2e23f99d8a63c8eebdc1200458 |
+| 2026-11-14 23:38 | seq-cifar100-icarl-b2000-s0-7ddd3c3e | seq-cifar100 | icarl | 2000 | 0 | complete | 0.4494 | 33.8 | 0a2995edc6b17b2e23f99d8a63c8eebdc1200458 |
+| 2026-11-14 23:46 | seq-cifar100-mir-b2000-s1-5e909996 | seq-cifar100 | mir | 2000 | 1 | complete | 0.3830 | 61.5 | 0a2995edc6b17b2e23f99d8a63c8eebdc1200458 |
+| 2026-11-15 00:12 | seq-cifar100-icarl-b2000-s1-d71809c7 | seq-cifar100 | icarl | 2000 | 1 | complete | 0.4525 | 33.2 | 0a2995edc6b17b2e23f99d8a63c8eebdc1200458 |
+| 2026-11-15 00:45 | seq-cifar100-icarl-b2000-s2-a6fcc07d | seq-cifar100 | icarl | 2000 | 2 | complete | 0.4376 | 33.0 | 0a2995edc6b17b2e23f99d8a63c8eebdc1200458 |
+| 2026-11-15 00:48 | seq-cifar100-mir-b2000-s2-44a40a9f | seq-cifar100 | mir | 2000 | 2 | complete | 0.4075 | 61.5 | 0a2995edc6b17b2e23f99d8a63c8eebdc1200458 |

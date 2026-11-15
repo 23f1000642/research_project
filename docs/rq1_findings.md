@@ -44,8 +44,10 @@ What the data say (descriptive; 2–3 seeds per cell):
 1. **Global TS: calibration and detection do come apart.** ECE usually improves, failure-detection
    AUROC moves by ≤ 1.7 points. Even an oracle global temperature fitted on the test data lowers
    old-class ECE by 78 % but raises AUROC by only 2 points.
-2. **Task-aware TS fitted on the replay buffer makes calibration worse almost everywhere**
-   (ECE up in 22 of 25 runs on all classes). Plausible reason, not tested: buffer items are training
+2. **Task-aware TS fitted on the replay buffer calibrates worse than a single global temperature**
+   (ECE_all above global TS in 25 of 25 runs; above uncalibrated MSP in only 13 of 25. CORRECTION:
+   an earlier version of this note said "ECE up in 22 of 25 runs" vs. uncalibrated; that count was
+   wrong, and the pre-registered claim C2 built on it failed in S3, see docs/s3_findings.md). Plausible reason, not tested: buffer items are training
    data the model has memorised, so per-task temperatures fitted on them are too sharp for old tasks.
    This is the problem T-CIL addresses with perturbed exemplars.
 3. **Its effect on failure detection depends on the CL method**: large gains for ER (+6 to +21 AUROC),
