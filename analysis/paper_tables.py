@@ -46,9 +46,10 @@ def collect(results):
         _, res = R.evaluate_run(rd)
         share, chance = recency_share(rd)
         mech = mechanism(rd, s)
-        rows.append(dict(split="confirm" if rd.name in confirm else "explore", dataset=s["dataset"],
+        held = heldout(rd, s)
+        rows.append(dict(rd=rd, split="confirm" if rd.name in confirm else "explore", dataset=s["dataset"],
                          method=s["method"], buffer=s["buffer_size"], variant=variant(cfg),
-                         seed=s["seed"], share=share, chance=chance, res=res, mech=mech,
+                         seed=s["seed"], share=share, chance=chance, res=res, mech=mech, held=held,
                          acc=float(json.loads((rd / "summary.json").read_text()).get("final_avg_acc", np.nan))
                          if "final_avg_acc" in s else np.nan))
     return rows
@@ -71,6 +72,114 @@ def mechanism(rd, s):
     return dict(t_global=g, t_old=float(np.mean([v for j, v in tt.items() if j < T - 1])), t_cur=tt[T - 1],
                 buf_acc=float((d["buf_logits"][keep].argmax(1) == d["buf_y"][keep]).mean() * 100),
                 rule_auroc=M.auroc_error(rule, p == y) * 100)
+
+
+def heldout(rd, s, n_splits=5, seed=0):
+    """Post hoc: per-task temperatures fitted on HELD-OUT old-task data instead of the memorised buffer.
+    Emulates a reserved validation split (as DATS keeps) by splitting each task's test set in half:
+    fit on half A, evaluate on half B (all seen classes), averaged over random splits."""
+    d = dict(np.load(sorted((rd / "eval").glob("task_*.npz"))[-1]))
+    T = s["n_tasks"]
+    k = len(s["class_order"]) // T
+    l = np.concatenate([d[f"test{j}_logits"] for j in range(T)]).astype(float)
+    y = np.concatenate([d[f"test{j}_y"] for j in range(T)]).astype(int)
+    rng = np.random.default_rng(seed)
+    acc = defaultdict(list)
+    for _ in range(n_splits):
+        a = np.zeros(len(y), bool)
+        for c in np.unique(y):  # stratified by class
+            idx = np.flatnonzero(y == c)
+            a[rng.choice(idx, len(idx) // 2, replace=False)] = True
+        b = ~a
+        g = M.fit_temperature(l[a], y[a])
+        tt = R.group_temperatures(l[a], None, y[a] // k, g, y[a])  # groups = true task (as on the buffer)
+        tp = R.group_temperatures(l[a], None, l[a].argmax(1) // k, g, y[a])  # groups = predicted task
+        lb, yb = l[b], y[b]
+        pb = lb.argmax(1)
+        ok = pb == yb
+        conf = {"none": M.softmax_np(lb).max(1), "ts": M.softmax_np(lb / g).max(1),
+                "task_ts": R.apply_group_t(lb, pb // k, tt, g),
+                "task_ts_pred": R.apply_group_t(lb, pb // k, tp, g)}
+        for name, c in conf.items():
+            acc[f"auroc_{name}"].append(M.auroc_error(c, ok) * 100)
+            acc[f"ece_{name}"].append(M.ece(c, ok) * 100)
+        acc["t_old"].append(np.mean([v for j, v in tt.items() if j < T - 1]))
+        acc["t_cur"].append(tt[T - 1])
+        acc["tp_old"].append(np.mean([v for j, v in tp.items() if j < T - 1]))
+        acc["tp_cur"].append(tp.get(T - 1, g))
+    return {key: float(np.mean(v)) for key, v in acc.items()}
+
+
+SIZES = (2, 5, 10, 20, 50)
+
+
+def size_table(rows, path, n_splits=5):
+    """Post hoc: held-out items per class needed by predicted-task-grouped TS (seq-CIFAR-100)."""
+    res = defaultdict(list)
+    for r in rows:
+        if r["dataset"] != "seq-cifar100":
+            continue
+        s = json.loads((r["rd"] / "summary.json").read_text())
+        d = dict(np.load(sorted((r["rd"] / "eval").glob("task_*.npz"))[-1]))
+        T = s["n_tasks"]
+        k = len(s["class_order"]) // T
+        l = np.concatenate([d[f"test{j}_logits"] for j in range(T)]).astype(float)
+        y = np.concatenate([d[f"test{j}_y"] for j in range(T)]).astype(int)
+        rng = np.random.default_rng(0)
+        for npc in SIZES:
+            for _ in range(n_splits):
+                a = np.zeros(len(y), bool)
+                for c in np.unique(y):
+                    a[rng.choice(np.flatnonzero(y == c), npc, replace=False)] = True
+                g = M.fit_temperature(l[a], y[a])
+                tp = R.group_temperatures(l[a], None, l[a].argmax(1) // k, g, y[a])
+                lb, yb = l[~a], y[~a]
+                pb = lb.argmax(1)
+                ok = pb == yb
+                c = R.apply_group_t(lb, pb // k, tp, g)
+                res[(r["method"], npc)].append((M.auroc_error(M.softmax_np(lb).max(1), ok) * 100,
+                                                M.auroc_error(c, ok) * 100, M.ece(M.softmax_np(lb / g).max(1), ok) * 100,
+                                                M.ece(c, ok) * 100))
+    L = [r"\begin{table}[h]\centering\small",
+         r"\caption{Held-out items per class needed by predicted-task-grouped TS (seq-CIFAR-100, emulation as in "
+         r"Table~\ref{tab:heldout}; evaluation on all remaining test items, 5 random draws, mean over runs). "
+         r"Each cell: AUROC$_\mathrm{all}$ / ECE$_\mathrm{all}$. Reference columns: MSP AUROC and global-TS ECE "
+         r"at 50 items per class.}\label{tab:size}",
+         r"\begin{tabular}{l" + "c" * (len(SIZES) + 2) + r"}\toprule",
+         "method & MSP AUROC & TS ECE & " + " & ".join(f"{n}/class" for n in SIZES) + r"\\\midrule"]
+    for m in ("er", "mir", "derpp", "icarl"):
+        ref = np.mean(res[(m, SIZES[-1])], 0)
+        cells = [np.mean(res[(m, n)], 0) for n in SIZES]
+        L.append(f"{METH[m]} & {ref[0]:.1f} & {ref[2]:.1f} & " + " & ".join(f"{c[1]:.1f} / {c[3]:.1f}" for c in cells) + r"\\")
+    L += [r"\bottomrule\end{tabular}", r"\end{table}"]
+    path.write_text("\n".join(L) + "\n", encoding="utf-8")
+
+
+def heldout_table(rows, path):
+    g = defaultdict(list)
+    for r in rows:
+        g[r["method"]].append(r)
+    cs = ("none", "ts", "task_ts", "task_ts_pred")
+    L = [r"\begin{table*}[t]\centering\small",
+         r"\caption{Post-hoc check: temperatures fitted on \emph{held-out} data instead of the replay buffer. "
+         r"Each task's test set is split in half (stratified by class); temperatures are fitted on one half and all "
+         r"metrics are computed on the other half, all seen classes, mean over 5 random splits and over runs. "
+         r"\emph{true}: calibration items grouped by their true task (the design used on the buffer); "
+         r"\emph{pred.}: grouped by their predicted task, matching how test inputs are assigned. "
+         r"Compare with Table~\ref{tab:mech} (buffer-fitted).}\label{tab:heldout}",
+         r"\resizebox{\linewidth}{!}{\begin{tabular}{lc cccc cccc cccc}\toprule",
+         r" & & \multicolumn{4}{c}{temperature} & \multicolumn{4}{c}{AUROC$_\mathrm{all}$} & \multicolumn{4}{c}{ECE$_\mathrm{all}$}\\",
+         r"\cmidrule(lr){3-6}\cmidrule(lr){7-10}\cmidrule(lr){11-14}",
+         r" & & \multicolumn{2}{c}{true} & \multicolumn{2}{c}{pred.} & & & task-TS & task-TS & & & task-TS & task-TS\\",
+         r"method & $n$ & $T_\mathrm{old}$ & $T_\mathrm{cur}$ & $T_\mathrm{old}$ & $T_\mathrm{cur}$ & MSP & TS & true & pred. & MSP & TS & true & pred.\\\midrule"]
+    for m in ("er", "mir", "derpp", "icarl"):
+        rs = g[m]
+        f = lambda key: np.mean([x["held"][key] for x in rs])
+        L.append(f"{METH[m]} & {len(rs)} & {f('t_old'):.2f} & {f('t_cur'):.2f} & {f('tp_old'):.2f} & {f('tp_cur'):.2f} & "
+                 + " & ".join(f"{f('auroc_' + c):.1f}" for c in cs) + " & "
+                 + " & ".join(f"{f('ece_' + c):.1f}" for c in cs) + r"\\")
+    L += [r"\bottomrule\end{tabular}}", r"\end{table*}"]
+    path.write_text("\n".join(L) + "\n", encoding="utf-8")
 
 
 def mech_table(rows, path):
@@ -192,6 +301,16 @@ def numbers(rows, path):
     # task-dependent score evaluated with the (confounded) old-class-only AUROC, exploratory set
     conf_old = np.mean([r["res"]["task_ts"]["auroc_old"] - r["res"]["none"]["auroc_old"] for r in ex])
     conf_all = np.mean(gain(ex))
+    # robustness (post hoc, all runs)
+    allg = gain(rows)
+    within = {m: stats.spearmanr(sh([r for r in rows if r["method"] == m]),
+                                 gain([r for r in rows if r["method"] == m]))[0] for m in ("er", "derpp")}
+    rho_chance = stats.spearmanr([r["share"] / r["chance"] for r in co], gain(co))[0]
+    aurc_imp = np.array([r["res"]["none"]["aurc_all"] - r["res"]["task_ts"]["aurc_all"] for r in co])
+    rho_aurc = stats.spearmanr(sh(co), aurc_imp)[0]
+    on_gain = np.array([r["res"]["oldnew_ts"]["auroc_all"] - r["res"]["none"]["auroc_all"] for r in rows])
+    on_worse = sum(r["res"]["oldnew_ts"]["ece_all"] > r["res"]["ts"]["ece_all"] for r in rows)
+    held = lambda m, key: np.mean([r["held"][key] for r in rows if r["method"] == m])
     N = {
         "nExplore": len(ex), "nConfirm": len(co), "nTotal": len(rows),
         "rhoExplore": f"{rho_ex:+.2f}", "rhoConfirm": f"{rho_co:+.2f}",
@@ -205,6 +324,16 @@ def numbers(rows, path):
         "shareMIR": f"{min(by(rows, 'mir')):.0f}--{max(by(rows, 'mir')):.0f}",
         "shareiCaRL": f"{min(by(rows, 'icarl')):.0f}--{max(by(rows, 'icarl')):.0f}",
         "confoundOld": f"{conf_old:+.1f}", "confoundAll": f"{conf_all:+.1f}",
+        "rhoWithinER": f"{within['er']:+.2f}", "rhoWithinDERpp": f"{within['derpp']:+.2f}",
+        "rhoChance": f"{rho_chance:+.2f}", "rhoAURC": f"{rho_aurc:+.2f}",
+        "oldnewCorr": f"{np.corrcoef(on_gain, allg)[0, 1]:+.2f}", "oldnewWorseTs": on_worse,
+        "heldERmsp": f"{held('er', 'auroc_none'):.1f}", "heldERpred": f"{held('er', 'auroc_task_ts_pred'):.1f}",
+        "heldERtrue": f"{held('er', 'auroc_task_ts'):.1f}", "heldEReceTs": f"{held('er', 'ece_ts'):.1f}",
+        "heldEReceTrue": f"{held('er', 'ece_task_ts'):.1f}",
+        "heldEReceTp": f"{held('er', 'ece_task_ts_pred'):.1f}",
+        "heldDmsp": f"{held('derpp', 'auroc_none'):.1f}", "heldDpred": f"{held('derpp', 'auroc_task_ts_pred'):.1f}",
+        "heldDeceTs": f"{held('derpp', 'ece_ts'):.1f}", "heldDeceTp": f"{held('derpp', 'ece_task_ts_pred'):.1f}",
+        "heldERtold": f"{held('er', 't_old'):.1f}",
     }
     path.write_text("".join(f"\\newcommand{{\\{k}}}{{{v}}}\n" for k, v in N.items()), encoding="utf-8")
     return N
@@ -226,6 +355,8 @@ def main(argv=None):
                "Uniform-error recency baseline: 22\\% on S-CIFAR-10, 10\\% on S-CIFAR-100.", "tab:explore")
     oracle_table(rows, OUT / "tables/oracle.tex")
     mech_table(rows, OUT / "tables/mech.tex")
+    heldout_table(rows, OUT / "tables/heldout.tex")
+    size_table(rows, OUT / "tables/size.tex")
     figure(rows, OUT / "figures/recency_gain")
     for k, v in numbers(rows, OUT / "numbers.tex").items():
         print(f"{k:18s} {v}")

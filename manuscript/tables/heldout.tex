@@ -1,0 +1,13 @@
+\begin{table*}[t]\centering\small
+\caption{Post-hoc check: temperatures fitted on \emph{held-out} data instead of the replay buffer. Each task's test set is split in half (stratified by class); temperatures are fitted on one half and all metrics are computed on the other half, all seen classes, mean over 5 random splits and over runs. \emph{true}: calibration items grouped by their true task (the design used on the buffer); \emph{pred.}: grouped by their predicted task, matching how test inputs are assigned. Compare with Table~\ref{tab:mech} (buffer-fitted).}\label{tab:heldout}
+\resizebox{\linewidth}{!}{\begin{tabular}{lc cccc cccc cccc}\toprule
+ & & \multicolumn{4}{c}{temperature} & \multicolumn{4}{c}{AUROC$_\mathrm{all}$} & \multicolumn{4}{c}{ECE$_\mathrm{all}$}\\
+\cmidrule(lr){3-6}\cmidrule(lr){7-10}\cmidrule(lr){11-14}
+ & & \multicolumn{2}{c}{true} & \multicolumn{2}{c}{pred.} & & & task-TS & task-TS & & & task-TS & task-TS\\
+method & $n$ & $T_\mathrm{old}$ & $T_\mathrm{cur}$ & $T_\mathrm{old}$ & $T_\mathrm{cur}$ & MSP & TS & true & pred. & MSP & TS & true & pred.\\\midrule
+ER & 15 & 5.24 & 2.16 & 3.08 & 5.69 & 73.1 & 76.4 & 54.7 & 87.7 & 47.6 & 4.8 & 30.5 & 7.3\\
+MIR & 3 & 3.83 & 2.01 & 2.71 & 4.42 & 73.9 & 76.9 & 56.9 & 87.0 & 44.9 & 2.7 & 23.3 & 5.2\\
+DER++ & 18 & 1.70 & 1.22 & 1.41 & 2.04 & 78.4 & 78.3 & 72.7 & 83.0 & 17.4 & 5.6 & 11.3 & 3.7\\
+iCaRL & 3 & 0.57 & 0.59 & 0.57 & 0.61 & 75.6 & 77.3 & 77.1 & 77.6 & 24.2 & 3.4 & 3.4 & 3.4\\
+\bottomrule\end{tabular}}
+\end{table*}

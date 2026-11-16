@@ -1,5 +1,5 @@
-% Draft v0.1 (2026-11-15). Every number comes from analysis/paper_tables.py (numbers.tex, tables/,
-% figures/) or analysis/confirm_test.py. Do not type numbers by hand.
+% Draft v0.2 (2026-11-16), after internal hostile review (docs/review_v01.md). Every number comes from
+% analysis/paper_tables.py (numbers.tex, tables/, figures/) or analysis/confirm_test.py.
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage[T1]{fontenc}
@@ -9,8 +9,8 @@
 \input{numbers}
 \newcommand{\taskts}{task-TS}
 
-\title{Recency Bias Decides When Task-Aware Calibration Helps a Continual Learner Detect Its Own Errors:\\
-A Pre-registered Study in Class-Incremental Learning}
+\title{Replay Buffers Turn Task-Aware Calibration into a Recency Detector:\\
+A Pre-registered Study of Failure Detection in Class-Incremental Learning}
 \author{Anonymous}
 \date{}
 
@@ -18,117 +18,121 @@ A Pre-registered Study in Class-Incremental Learning}
 \maketitle
 
 \begin{abstract}
-Recent post-hoc calibration methods for class-incremental learning (CIL) fit temperatures per task
-on the replay buffer and are evaluated by calibration error alone. We ask whether such calibrators
-also help a model \emph{detect its own errors}, the property selective prediction depends on. On
-seq-CIFAR-10/100 with ER, DER++, MIR and iCaRL (\nTotal{} runs), we report three findings. (i)~A
-methodological pitfall: the common old-class-only error-detection AUROC is confounded for any score
-that depends on the predicted task, inflating the apparent gain of task-aware temperature scaling
-from \confoundAll{} to \confoundOld{} AUROC points on average. (ii)~Whether task-aware temperature
-scaling helps or hurts failure detection is governed by recency bias, the share of old-class errors
-that are predicted as a current-task class. This was found on \nExplore{} exploratory runs
-(Spearman $\rho=\rhoExplore$) and then confirmed under a rule committed before \nConfirm{} new runs
-with unseen seeds and two unseen methods ($\rho=\rhoConfirm$, $p=\pConfirm$). (iii)~The mechanism:
-the buffer is memorised (about 100\,\% accuracy), so the fitted old-task temperatures collapse to
-about $0.1$ while the current-task temperature stays near the global one. Task-aware scaling then
-behaves like a trivial rule that distrusts current-task predictions. Its failure-detection gain
-tracks that rule's gain almost exactly (correlation $\geq 0.98$ for ER, MIR and DER++), and it
-calibrates worse than a single global temperature in every one of our \nTotal{} runs. Three further
-pre-registered claims about global and oracle temperatures were not confirmed, and we report them
-as such.
+Post-hoc calibration for class-incremental learning (CIL) is evaluated almost exclusively by
+calibration error. We ask what temperature-based calibrators do to \emph{failure detection}, i.e.\
+whether a model's confidence ranks its errors below its correct predictions, using seq-CIFAR-10/100
+with ER, DER++, MIR and iCaRL (\nTotal{} runs, all analyses on saved logits). We report four
+findings. (i)~\emph{A measurement pitfall}: the common old-class-only error-detection AUROC is
+confounded for any score that depends on the predicted task, inflating the apparent gain of
+task-wise temperature scaling from \confoundAll{} to \confoundOld{} points. (ii)~\emph{A confirmed
+predictor}: when per-task temperatures are fitted on the replay buffer, whether they help or hurt
+failure detection is governed by recency bias, the share of old-class errors predicted as a
+current-task class. This was found on \nExplore{} exploratory runs and confirmed under a rule
+committed before \nConfirm{} new runs with unseen seeds and two unseen methods
+($\rho=\rhoConfirm$, $p=\pConfirm$). (iii)~\emph{A mechanism}: the buffer is memorised, so
+old-task temperatures collapse to about $0.1$, and the calibrator degenerates into a rule that
+distrusts current-task predictions; it calibrates worse than one global temperature in all
+\nTotal{} runs. (iv)~\emph{A remedy (post hoc)}: in a held-out emulation, per-task temperatures
+fitted on held-out items and grouped by the \emph{predicted} task improve error-detection AUROC
+from \heldERmsp{} to \heldERpred{} for ER and from \heldDmsp{} to \heldDpred{} for DER++, while
+keeping calibration error close to or below global temperature scaling. Three further
+pre-registered claims were not confirmed; we report them in full.
 \end{abstract}
 
 \section{Introduction}
 A continual learner that forgets should at least know when it is wrong. In class-incremental
-learning (CIL)~\cite{vandeven2022three,masana2022survey}, a single classifier must cover all classes
-seen so far without task labels at test time. Models are known to be miscalibrated after
-learning several tasks~\cite{li2024calibration}, and recent work proposes post-hoc fixes:
-temperature scaling with perturbed exemplars (T-CIL~\cite{hwang2025tcil}), distance-aware
-temperatures (DATS~\cite{dats2025}) and multi-temperature schemes~\cite{mtcc2026}. These methods
-are evaluated by calibration metrics such as ECE. However, calibration and \emph{failure
-detection}, i.e.\ ranking a model's errors below its correct predictions, are different
-properties~\cite{jaeger2023call,zhu2022rethinking}, and the second is what selective prediction
-and deferral to a human need~\cite{geifman2017selective}.
+learning (CIL)~\cite{vandeven2022three,masana2022survey}, one classifier must cover all classes seen
+so far, without task labels at test time. Continual learners are poorly
+calibrated~\cite{li2024calibration}, and recent methods fix this post hoc: T-CIL fits one global
+temperature on adversarially perturbed exemplars~\cite{hwang2025tcil}; DATS sets temperatures from
+distances to class prototypes in a reserved calibration set~\cite{dats2025}; MT-CC learns to route
+inputs into two temperature groups~\cite{mtcc2026}. These methods are evaluated by calibration
+metrics (ECE and variants). Calibration and \emph{failure detection}, i.e.\ ranking errors below
+correct predictions, are different properties~\cite{jaeger2023call,zhu2022rethinking}, and the
+second is what selective prediction and deferral to a human depend on~\cite{geifman2017selective}.
 
-We study what post-hoc temperature calibrators do to failure detection in CIL, using only saved
-logits, so every analysis runs on a CPU. The study has two stages. We first analysed
-\nExplore{} runs and found that the original hypothesis, that calibrators do not help detection,
-was not supported in its pre-registered form (Section~\ref{sec:design}). We then wrote down four
-specific claims suggested by that data and tested them on \nConfirm{} new runs that nobody had
-looked at, under a decision rule committed to version control beforehand.
+We study the simplest member of the task-aware family, one temperature per task, and ask what it
+does to failure detection. Analyses use saved logits only, so they run on a CPU. The study has two
+stages. A first pre-registered hypothesis (calibrators do not help detection) was not supported
+on \nExplore{} runs. Inspecting why produced four specific claims, which we tested on \nConfirm{}
+new runs under a decision rule committed to version control before those runs existed.
 
 \paragraph{Contributions.}
 \begin{itemize}
-\item \textbf{A measurement pitfall.} Restricting error-detection AUROC to test samples whose
-  \emph{true} class is old leaks label information into any score that depends on the
-  \emph{predicted} task, because among true-old samples every current-task prediction is an error.
-  We show that this inflates gains by a large factor and recommend all-class AUROC for such scores
+\item \textbf{A measurement pitfall.} Restricting error-detection AUROC to samples whose \emph{true}
+  class is old leaks label information into scores that depend on the \emph{predicted} task
   (Section~\ref{sec:pitfall}).
-\item \textbf{A confirmed predictor.} The failure-detection gain of task-aware temperature scaling
-  is predicted by the recency share of old-class errors. This holds on unseen seeds and on two
-  methods not used to form the hypothesis (MIR and iCaRL), with $\rho=\rhoConfirm$
-  (Section~\ref{sec:recency}).
-\item \textbf{A mechanism.} Per-task temperatures fitted on a memorised buffer degenerate, so
-  task-aware scaling reduces to ``distrust current-task predictions''. This explains when it helps,
-  when it hurts, and why it calibrates worse than one global temperature (Section~\ref{sec:mech}).
-\item \textbf{Negative and null results reported in full}, including three pre-registered claims
-  that were not confirmed (Section~\ref{sec:null}).
+\item \textbf{A confirmed predictor.} For per-task temperatures fitted on the replay buffer, the
+  recency share of old-class errors predicts the change in failure detection, on unseen seeds and
+  on two methods not used to form the hypothesis (Section~\ref{sec:recency}).
+\item \textbf{A mechanism.} Temperatures fitted on memorised data collapse, which turns the
+  calibrator into a predicted-task indicator; this explains both its detection gains and its poor
+  calibration (Section~\ref{sec:mech}).
+\item \textbf{A remedy, as a post-hoc result with a stated confirmation plan.} Fitting on held-out
+  items and grouping by predicted task gives good calibration \emph{and} strong failure detection
+  (Section~\ref{sec:heldout}).
+\item \textbf{Null results reported in full}, including three pre-registered claims that were not
+  confirmed and one counting error in our own notes (Section~\ref{sec:null}).
 \end{itemize}
 
 \section{Related work}
-\paragraph{Class-incremental learning.} Replay methods such as ER~\cite{chaudhry2019tiny},
-DER++~\cite{buzzega2020dark}, MIR~\cite{aljundi2019mir} and iCaRL~\cite{rebuffi2017icarl} keep a
-small memory of past data. CIL models are biased towards the most recent classes; this
-\emph{recency} or task-recency bias is well documented and motivates output-layer corrections such
-as BiC~\cite{wu2019bic}, LUCIR~\cite{hou2019lucir} and separated softmax~\cite{ahn2021ssil}. We
-measure this bias among the model's errors and use it to explain the behaviour of calibrators,
-rather than correcting it.
+\paragraph{Class-incremental learning and recency bias.} Replay methods such as
+ER~\cite{chaudhry2019tiny}, DER++~\cite{buzzega2020dark}, MIR~\cite{aljundi2019mir} and
+iCaRL~\cite{rebuffi2017icarl} keep a small memory of past data. CIL models are biased towards the
+most recent classes, which motivates output-layer corrections such as BiC~\cite{wu2019bic},
+LUCIR~\cite{hou2019lucir} and separated softmax~\cite{ahn2021ssil}. We do not correct this bias; we
+measure it among the model's errors and use it to explain what calibrators do.
 
-\paragraph{Calibration in continual learning.} \citet{li2024calibration} showed that continual
-learners are poorly calibrated. T-CIL~\cite{hwang2025tcil}, DATS~\cite{dats2025} and
-MT-CC~\cite{mtcc2026} propose temperature-based calibrators for CIL and report calibration metrics.
-Our task-aware calibrators are deliberately simple versions of this family (one temperature per
-task, or per old/new group, assigned by the predicted task). We do not claim to reproduce those
-methods (Section~\ref{sec:limits}).
+\paragraph{Calibration in CIL.} \citet{li2024calibration} showed that continual learners are poorly
+calibrated. T-CIL~\cite{hwang2025tcil} learns one global temperature from perturbed exemplars,
+explicitly because plain exemplars have already been trained on. DATS~\cite{dats2025} uses
+distance-dependent temperatures fitted on a calibration set reserved from each task's validation
+data. MT-CC~\cite{mtcc2026} routes inputs into two temperature groups with a small network that
+uses the softmax mass on old and new classes. As far as we could find, none of these reports
+misclassification-detection metrics such as AUROC or AURC. Our per-task calibrator is \emph{not} any
+of these methods; it isolates two design choices they make differently, namely what the
+temperatures are fitted on (buffer vs.\ held-out data) and how inputs are assigned to a temperature.
 
-\paragraph{Failure detection.} Maximum softmax probability (MSP)~\cite{hendrycks2017baseline} is
-a strong baseline for misclassification detection. \citet{jaeger2023call} argue that failure
-detection should be evaluated by ranking metrics such as AUROC and AURC rather than calibration
-error. \citet{zhu2022rethinking} show that popular calibration methods can harm failure prediction.
-We bring this view to CIL, where the old/new class structure creates a pitfall of its own.
+\paragraph{Failure detection.} Maximum softmax probability (MSP)~\cite{hendrycks2017baseline} is a
+strong baseline for misclassification detection. \citet{jaeger2023call} argue that failure
+detection should be evaluated with ranking metrics such as AUROC and AURC rather than calibration
+error, and \citet{zhu2022rethinking} show that popular calibration methods can harm failure
+prediction. We bring this view to CIL, where the old/new class structure creates its own pitfall.
+We found no prior work that uses the predicted task as a failure signal in CIL, though our search
+was limited.
 
 \section{Setup}\label{sec:setup}
 \paragraph{Benchmarks and training.} seq-CIFAR-10 (5 tasks $\times$ 2 classes) and seq-CIFAR-100
 (10 tasks $\times$ 10 classes)~\cite{krizhevsky2009learning}. We use a reduced ResNet-18, SGD,
 batch size 32 and 50 epochs per task, following the DER protocol~\cite{buzzega2020dark}, with
 per-method hyper-parameters from the public Mammoth configurations and mixed-precision training.
-Each task's training set is split 90/10 into training and validation; test sets are never used for
-fitting. Buffer sizes are 500 and 2000. Our DER++ reaches $71.2\pm3.4$ final accuracy on
-seq-CIFAR-10 (published: $72.7\pm1.4$~\cite{buzzega2020dark}). Final accuracies on seq-CIFAR-100
-are listed in Appendix~\ref{app:acc}.
+Each task's training set is split 90/10 into training and validation; test data is never used for
+fitting in the main analyses. Buffer sizes are 500 and 2000. Our DER++ reaches $71.2\pm3.4$ final
+accuracy on seq-CIFAR-10 (published: $72.7\pm1.4$~\cite{buzzega2020dark}). Final accuracies on
+seq-CIFAR-100 are in Appendix~\ref{app:acc}.
 
 \paragraph{Scores and calibrators.} All scores are computed from the logits after the last task.
-Temperatures never change the argmax, so accuracy is identical across calibrators.
+Temperatures do not change the argmax, so accuracy is identical across calibrators.
 \begin{itemize}
 \item \textbf{MSP}: maximum softmax probability, no calibration.
 \item \textbf{TS}: one global temperature minimising NLL~\cite{guo2017calibration}.
-\item \textbf{\taskts}: one temperature per task, fitted on that task's calibration items. A test
-  input uses the temperature of the task its \emph{predicted} class belongs to. A group with fewer
-  than 20 items falls back to the global temperature.
-\item \textbf{Oracle TS}: one temperature fitted on the evaluated old-class test data itself. This
-  is not a method but an upper bound for any single temperature.
+\item \textbf{\taskts} (buffer-fitted, per-task): one temperature per task, fitted on that task's
+  calibration items; a test input uses the temperature of the task its \emph{predicted} class belongs
+  to. A group with fewer than 20 items falls back to the global temperature. A two-group variant
+  (old vs.\ current task) behaves the same way (Section~\ref{sec:robust}).
+\item \textbf{Oracle TS}: one temperature fitted on the evaluated old-class test data itself; an
+  upper bound for any single temperature, not a method.
 \end{itemize}
-\paragraph{Legal calibration set.} At the end of training a CIL method may keep only its buffer and
-the current task's validation split. All non-oracle calibrators are fitted on exactly this set. For
-iCaRL, whose classifier is nearest-mean-of-exemplars, we use the logits
-$-\lVert f(x)-\mu_c\rVert^2/\tau$ with $\tau=0.1$ on normalised features.
+\paragraph{Calibration set.} At the end of training a CIL method may keep only its buffer and the
+current task's validation split. All non-oracle calibrators in Sections~\ref{sec:pitfall}--\ref{sec:null}
+are fitted on exactly this set. For iCaRL, whose classifier is nearest-mean-of-exemplars, we use the
+logits $-\lVert f(x)-\mu_c\rVert^2/\tau$ with $\tau=0.1$ on normalised features.
 
-\paragraph{Metrics.} \textbf{ECE} with 15 equal-width bins; \textbf{error-detection AUROC}, the
-probability that a correct prediction receives a higher score than an error; both in percent, on
-\emph{all seen classes} unless stated otherwise. \textbf{Recency share}: among test samples of old
-classes that are misclassified, the percentage predicted as a class of the current (last) task. If
-errors were spread uniformly over the other classes, this would be 22\,\% on seq-CIFAR-10 and 10\,\%
-on seq-CIFAR-100.
+\paragraph{Metrics.} \textbf{ECE} (15 equal-width bins); \textbf{error-detection AUROC}, the
+probability that a correct prediction receives a higher score than an error; \textbf{AURC}. All in
+percent, on \emph{all seen classes} unless stated otherwise. \textbf{Recency share}: among
+misclassified test samples of old classes, the percentage predicted as a class of the current (last)
+task. Uniformly spread errors would give 22\,\% on seq-CIFAR-10 and 10\,\% on seq-CIFAR-100.
 
 \section{Study design}\label{sec:design}
 \paragraph{Stage 1: exploratory.} A first rule, committed before the analysis, stated that
@@ -136,134 +140,160 @@ calibrators improve calibration but not old-class failure detection. It was \emp
 task-aware calibrators appeared to raise old-class AUROC by about 15 points. Inspecting why led to
 the pitfall in Section~\ref{sec:pitfall} and to the recency hypothesis. These \nExplore{} runs (ER
 and DER++; seq-CIFAR-10 at buffer 500 in three training variants, seq-CIFAR-100 at buffers 500 and
-2000; 2--3 seeds per cell) are therefore exploratory, and are shown in
-Appendix~\ref{app:explore}.
+2000; 2--3 seeds per cell) are exploratory (Appendix~\ref{app:explore}).
 
 \paragraph{Stage 2: confirmatory.} Before any new run existed, we committed a test script with four
-claims and their decision rules. It uses only \nConfirm{} new runs on seq-CIFAR-100: ER and DER++
-with unseen seeds (3, 4) at buffers 500 and 2000, plus MIR and iCaRL (never analysed before) at
-buffer 2000 with seeds 0--2. No pooling with stage-1 runs.
+claims and decision rules. It uses only \nConfirm{} new runs on seq-CIFAR-100: ER and DER++ with
+unseen seeds (3, 4) at buffers 500 and 2000, plus MIR and iCaRL (never analysed before) at buffer
+2000 with seeds 0--2. The run plan stated in advance that iCaRL was expected to show low recency
+bias. There is no pooling with stage-1 runs.
 \begin{itemize}
-\item[C1] Global TS changes AUROC$_\mathrm{all}$ by less than $\pm1$ point (equivalence by two
-  one-sided $t$-tests, each $p<0.05$).
-\item[C2] \taskts{} raises ECE$_\mathrm{all}$ above MSP in $\geq75\,\%$ of runs (sign test,
-  $p<0.05$).
-\item[C3] The recency share and the \taskts{} gain in AUROC$_\mathrm{all}$ are positively rank
+\item[C1] Global TS changes AUROC$_\mathrm{all}$ by less than $\pm1$ point (two one-sided
+  $t$-tests, each $p<0.05$).
+\item[C2] \taskts{} raises ECE$_\mathrm{all}$ above MSP in $\geq75\,\%$ of runs (sign test, $p<0.05$).
+\item[C3] Recency share and the \taskts{} gain in AUROC$_\mathrm{all}$ are positively rank
   correlated (Spearman, one-sided $p<0.05$).
 \item[C4] Oracle TS lowers ECE$_\mathrm{old}$ by $\geq50\,\%$ on average while raising
   AUROC$_\mathrm{old}$ by $<3$ points.
 \end{itemize}
-Analyses in Section~\ref{sec:mech} were done after the confirmation and are labelled post hoc.
+Sections~\ref{sec:mech}--\ref{sec:heldout} were analysed after the confirmation and are labelled
+post hoc.
 
 \section{Results}
 \subsection{Old-class-only AUROC is confounded for predicted-task scores}\label{sec:pitfall}
-CIL papers often report uncertainty on old classes only, since forgetting happens there.
-Restricting the evaluation to samples whose true class is old is harmless for a score that ignores
-the predicted task, such as MSP or global TS. It is not harmless for \taskts: conditioned on a true
-old class, \emph{every} prediction in the current task is an error, so any score that is lower for
+CIL studies often report uncertainty on old classes only, since forgetting happens there. Restricting
+evaluation to samples whose true class is old is harmless for a score that ignores the predicted
+task, such as MSP or global TS. It is not harmless for \taskts: conditioned on a true old class,
+\emph{every} prediction in the current task is an error, so any score that is lower for
 current-task predictions becomes an error detector that cannot be used at deployment, where the
-true class is unknown. On the exploratory runs, \taskts{} gains \confoundOld{} AUROC points under
-the old-class-only metric but only \confoundAll{} points under the all-class metric. We therefore
-evaluate predicted-task scores on all seen classes, and use old-class AUROC only for
-task-independent scores (Table~\ref{tab:oracle}).
+true class is unknown. On the exploratory runs, \taskts{} gains \confoundOld{} AUROC points under the
+old-class-only metric but only \confoundAll{} under the all-class metric. We therefore evaluate
+predicted-task scores on all seen classes, and use old-class AUROC only for task-independent scores
+(Table~\ref{tab:oracle}).
 
-\subsection{Recency bias predicts the effect of task-aware calibration (confirmed)}\label{sec:recency}
-Table~\ref{tab:confirm} shows the confirmatory runs and Figure~\ref{fig:recency} shows all runs.
-The effect of \taskts{} on failure detection ranges from strongly negative to strongly positive.
-Its sign and size follow the recency share: ER and MIR send most old-class errors to the current
-task (recency share \shareER{}\,\% and \shareMIR{}\,\%) and, in the confirmatory runs, gain 13--22 AUROC
-points. iCaRL, whose nearest-mean classifier does not use the biased output layer, has a share of \shareiCaRL{}\,\%, barely
-above the uniform 10\,\%, and gains about 1 point. DER++ lies in between, and on seq-CIFAR-10 it
-loses up to 20 points. On the confirmatory runs, Spearman $\rho=\rhoConfirm$ ($p=\pConfirm$);
-\textbf{C3 is confirmed}. Two of the four confirmatory methods were not used to form the
-hypothesis.
+\subsection{Recency bias predicts the effect of buffer-fitted task-TS (confirmed)}\label{sec:recency}
+Table~\ref{tab:confirm} shows the confirmatory runs and Figure~\ref{fig:recency} all runs. The effect
+of \taskts{} on failure detection ranges from strongly negative to strongly positive, and follows
+the recency share. ER and MIR send most old-class errors to the current task (shares \shareER{}\,\%
+and \shareMIR{}\,\%) and, in the confirmatory runs, gain 13--22 AUROC points. iCaRL, whose
+nearest-mean classifier does not use the biased output layer, has a share of \shareiCaRL{}\,\%,
+barely above the uniform 10\,\%, and gains about 1 point. DER++ lies in between, and on
+seq-CIFAR-10 it loses up to 20 points. On the confirmatory runs Spearman $\rho=\rhoConfirm$
+($p=\pConfirm$): \textbf{C3 is confirmed}.
 
 \input{tables/confirm}
 
 \begin{figure}[t]\centering
 \includegraphics[width=0.62\linewidth]{figures/recency_gain}
-\caption{Gain of \taskts{} over MSP in all-class failure-detection AUROC against the recency share
-of old-class errors, one point per run. Grey: exploratory runs (used to form the hypothesis).
-Blue: confirmatory runs (rule committed before they existed).}\label{fig:recency}
+\caption{Gain of buffer-fitted \taskts{} over MSP in all-class failure-detection AUROC against the
+recency share of old-class errors, one point per run. Grey: exploratory runs (used to form the
+hypothesis). Blue: confirmatory runs (rule committed before they existed).}\label{fig:recency}
 \end{figure}
 
-\subsection{Why: per-task temperatures fitted on a memorised buffer degenerate (post hoc)}\label{sec:mech}
+\subsection{Robustness of the recency relation (post hoc)}\label{sec:robust}
+The pooled correlation could be driven by differences between methods alone. It is not: within a
+single method it remains high (ER $\rho=\rhoWithinER$, DER++ $\rho=\rhoWithinDERpp$, all runs).
+Measuring the share relative to its uniform-error level gives $\rho=\rhoChance$ on the
+confirmatory runs, and using the AURC improvement instead of the AUROC gain gives
+$\rho=\rhoAURC$. The two-group (old vs.\ current) variant behaves like \taskts: its gains correlate
+at \oldnewCorr{} with those of \taskts, and it calibrates worse than global TS in
+\oldnewWorseTs/\nTotal{} runs.
+
+\subsection{Why: temperatures fitted on a memorised buffer collapse (post hoc)}\label{sec:mech}
 Table~\ref{tab:mech} shows the fitted temperatures. Replay buffers are trained on repeatedly, so
-the model classifies them almost perfectly (99.9--100\,\% accuracy for ER, MIR and DER++). The NLL
-on such items keeps falling as the temperature goes down, so old-task temperatures end near
-$0.1$--$0.15$, while the current-task temperature, fitted on held-out validation data, stays close
-to the global one. Under \taskts, every prediction that lands in an old task therefore gets a
-confidence near 1, and the score mostly encodes \emph{which task was predicted}.
+the model classifies them almost perfectly (99.9--100\,\% for ER, MIR and DER++). On such items NLL
+keeps decreasing as the temperature goes down, so old-task temperatures end near $0.1$--$0.15$,
+while the current-task temperature, fitted on held-out validation data, stays near the global one.
+Every prediction that lands in an old task then gets confidence near 1, and the score mostly
+encodes \emph{which task was predicted}.
 
-To test this reading we compare \taskts{} with a rule that uses no temperature at all: rank every
+To test this reading, we compare \taskts{} with a rule that uses no temperature: rank every
 prediction in an old task above every prediction in the current task, and break ties by MSP. For
-ER, MIR and DER++, the rule's AUROC is within about 1.4 points of \taskts{} on average, and their
-gains over MSP correlate at $+0.98$ to $+1.00$ across runs. The rule helps exactly when errors sit in
-the current task, which is what the recency share measures; this makes C3 a consequence of the
-mechanism rather than a coincidence. iCaRL is the exception that fits the account: its exemplars
-are not memorised under the nearest-mean classifier (63\,\% accuracy), its temperatures stay close
-together, and \taskts{} behaves like global TS (only 3 runs, so we do not interpret the correlation
-there).
+ER, MIR and DER++ the rule is within 1.4 AUROC points of \taskts{} on average, and their gains over
+MSP correlate at $+0.98$ to $+1.00$ across runs. The rule helps exactly when errors sit in the
+current task, which is what the recency share measures, so C3 follows from the mechanism. iCaRL
+fits the account: its exemplars are not memorised under the nearest-mean classifier (63\,\%
+accuracy), its temperatures stay close together, and \taskts{} behaves like global TS. With only
+3 runs we do not interpret its correlation.
 
-The same mechanism hurts calibration. Old-task predictions become far too confident, and
-\taskts{} has a higher ECE$_\mathrm{all}$ than global TS in \worseTsExplore/\nExplore{} exploratory
-and \worseTsConfirm/\nConfirm{} confirmatory runs. This comparison was not pre-registered (see
-C2 below).
+The collapse also explains the poor calibration. Old-task predictions become far too confident,
+and \taskts{} has a higher ECE$_\mathrm{all}$ than global TS in \worseTsExplore/\nExplore{}
+exploratory and \worseTsConfirm/\nConfirm{} confirmatory runs. This is the failure T-CIL avoids by
+not fitting on plain exemplars~\cite{hwang2025tcil}.
 
 \input{tables/mech}
 
+\subsection{Fitting on held-out data: calibration and detection together (post hoc)}\label{sec:heldout}
+If the buffer is the problem, per-task temperatures fitted on data the model has not trained on
+should behave differently. Our runs saved held-out logits only for the current task, so we
+\emph{emulate} a reserved calibration set like the one DATS keeps~\cite{dats2025}: each task's test
+set is split in half (stratified by class), temperatures are fitted on one half, and everything is
+evaluated on the other half (5 random splits). Table~\ref{tab:heldout} shows two variants.
+
+\emph{Grouping by true task}, the design that is harmless on the buffer, now fails badly.
+Old-task temperatures rise (ER: $T_\mathrm{old}\approx\heldERtold$), because held-out old-class items are
+often misclassified, and since inputs are assigned by predicted task, old-task predictions are
+under-confident and current-task predictions are not penalised: AUROC falls from \heldERmsp{} to
+\heldERtrue{} for ER. \emph{Grouping by predicted task} fixes the mismatch between how
+temperatures are fitted and how they are used. The current-task group then contains the misrouted
+old-class inputs and gets a high temperature. Failure detection improves strongly (ER
+\heldERmsp{}$\to$\heldERpred{}, DER++ \heldDmsp{}$\to$\heldDpred{}; the buffer-fitted version hurt
+DER++), and calibration error stays close to global TS (ER \heldEReceTp{} vs.\ \heldEReceTs;
+DER++ \heldDeceTp{} vs.\ \heldDeceTs). In a size check (Appendix~\ref{app:size}), 5--10 held-out
+items per class already give most of the gain.
+
+Two caveats. The held-out items come from the test distribution and are \emph{extra} memory on top
+of the buffer. A fair comparison must charge that memory to the buffer budget. This result is post
+hoc and needs its own confirmation, which we describe in Section~\ref{sec:limits}.
+
+\input{tables/heldout}
+
 \subsection{Pre-registered claims that were not confirmed}\label{sec:null}
-\paragraph{C1 (global TS leaves failure detection unchanged): not confirmed.} The mean change was
-\tsGainConfirm{} AUROC points (TOST $p=\tostP$). The effect is close to zero for DER++ and $+1.2$ to
-$+1.9$ for ER, MIR and iCaRL. Global TS thus improves detection slightly, and our $\pm1$ margin was
-too tight to claim equivalence.
+\paragraph{C1 (global TS leaves failure detection unchanged): not confirmed.} Mean change
+\tsGainConfirm{} points (TOST $p=\tostP$): about zero for DER++, $+1.2$ to $+1.9$ for ER, MIR and
+iCaRL. Global TS improves detection slightly, and our $\pm1$ margin was too tight.
 
 \paragraph{C2 (task-TS worsens ECE over MSP in $\geq 75\,\%$ of runs): not confirmed.} Only
-\worseNoneConfirm/\nConfirm{} runs. This claim rested on a counting error in our stage-1 notes: the
-correct stage-1 count is \worseNoneExplore/\nExplore{}, not the 22/25 that we had recorded. The pattern is
-method-dependent: for ER and MIR, uncalibrated ECE is so high (45--63) that even \taskts{} lowers
-it, whereas for DER++ it rises. The robust statement is the comparison with global TS in
-Section~\ref{sec:mech}, which needs its own confirmation.
+\worseNoneConfirm/\nConfirm{} runs. The claim rested on a counting error in our stage-1 notes: the
+correct stage-1 count is \worseNoneExplore/\nExplore, not the 22/25 we had recorded. For ER and MIR,
+uncalibrated ECE is so high (about 45--63) that even \taskts{} lowers it. The robust statement is
+the comparison with global TS (Section~\ref{sec:mech}), which was not pre-registered.
 
 \paragraph{C4 (oracle TS: large calibration gain, small detection gain): not confirmed.} An oracle
 temperature lowered ECE$_\mathrm{old}$ by \oracleEceRel\,\% but raised AUROC$_\mathrm{old}$ by
-\oracleAurocGain{} points, just above the 3-point threshold. Qualitatively, a single temperature
-can remove most of the calibration error while changing the error ranking by only a few points
-(Table~\ref{tab:oracle}), but the pre-registered criterion was missed.
+\oracleAurocGain{} points, just above the 3-point threshold (Table~\ref{tab:oracle}).
 
 \input{tables/oracle}
 
 \section{Discussion}
-\paragraph{What this means in practice.} A task-aware calibrator fitted on the replay buffer is
-not a calibrator in the usual sense: its temperatures reflect how well the buffer was memorised,
-not how reliable the model is on old classes. Its benefit for failure detection is real only when
-the model's errors are dominated by recency bias, and a simple ``distrust the newest task'' rule
-captures it. CIL calibration methods should therefore (a)~report failure-detection metrics on all
-seen classes alongside ECE, (b)~compare against the predicted-task rule, and (c)~avoid fitting
-per-task temperatures on memorised data, the problem T-CIL addresses with perturbed
-exemplars~\cite{hwang2025tcil}.
+\paragraph{Recommendations.} (a)~Report failure-detection metrics on all seen classes alongside
+calibration error. Do not use old-class-only AUROC for scores that depend on the predicted task.
+(b)~Do not fit per-task temperatures on replay data: they measure memorisation, not reliability.
+(c)~Compare task-aware scores against the predicted-task rule, which captures most of what
+buffer-fitted task-aware scaling does. (d)~If held-out data per task can be kept, group calibration
+items by \emph{predicted} task. In our emulation this gave both calibration and failure detection.
 
-\paragraph{Limitations.}\label{sec:limits} We evaluate simplified task-aware calibrators, not the
-published T-CIL, DATS or MT-CC implementations, so our results bound what those methods do only to
-the extent that they share the per-task temperature structure. Confirmation covers seq-CIFAR-100
-only, with 2--3 seeds per cell; seq-CIFAR-10 and the training-variant runs are exploratory. The
-recency share requires test labels and is a diagnostic, not a deployable score; whether a
-label-free proxy (e.g.\ the fraction of predictions falling in the current task) works is open.
-iCaRL's uncalibrated ECE depends on the arbitrary scale $\tau$ of its nearest-mean logits. The
-mechanism analysis is post hoc. Finally, the backbone is a ResNet-18 trained from scratch;
-pre-trained models may behave differently.
+\paragraph{Limitations.}\label{sec:limits} We study simplified per-task calibrators, not the published
+T-CIL, DATS or MT-CC, so our results apply to those methods only insofar as they share the relevant
+design choices. Confirmation (Section~\ref{sec:recency}) covers seq-CIFAR-100 only, with 2--3 seeds
+per cell. Sections~\ref{sec:robust}--\ref{sec:heldout} are post hoc. The held-out analysis uses half
+of the test set as a stand-in for a reserved validation set and ignores its memory cost. A proper
+test would reserve held-out items per task during training, charge them to the memory budget, and
+pre-register the comparison. The recency share needs test labels and is a diagnostic, not a
+deployable score. iCaRL's uncalibrated ECE depends on the arbitrary scale $\tau$. The backbone is a
+ResNet-18 trained from scratch; pre-trained models may behave differently.
 
 \section{Conclusion}
-Whether task-aware temperature scaling helps a class-incremental learner detect its own errors is
-decided by recency bias, a prediction we confirmed on unseen runs and methods. The reason is
-simple: per-task temperatures fitted on a memorised buffer turn the calibrator into a
-predicted-task indicator. We hope the pitfall, the predictor and the rule baseline make future CIL
-calibration studies easier to interpret.
+Per-task temperatures fitted on a replay buffer do not calibrate a class-incremental learner. They
+detect recency: the buffer is memorised, the temperatures collapse, and the calibrator becomes a
+predicted-task indicator whose value for failure detection is set by the model's recency bias. We
+confirmed this prediction on unseen runs and methods. Fitted on held-out data and grouped by
+predicted task, the same simple calibrator delivered both calibration and failure detection in our
+emulation, a result we state as a hypothesis for confirmation.
 
 \paragraph{Reproducibility.} Code, configurations, per-run logs and metrics, the pre-registration
-commits and the scripts that generate every number, table and figure in this paper are public
-(link withheld for review). The confirmation rule was committed before the confirmatory runs were
-started.
+commits and the scripts that generate every number, table and figure are public (link withheld for
+review). The confirmation rule was committed before the confirmatory runs were started.
 
 \bibliographystyle{plainnat}
 \bibliography{refs}
@@ -272,11 +302,13 @@ started.
 \section{Exploratory runs}\label{app:explore}
 \input{tables/explore}
 
+\section{Held-out set size}\label{app:size}
+\input{tables/size}
+
 \section{Final accuracy}\label{app:acc}
 Final average accuracy (\%) on seq-CIFAR-100, mean$\pm$sd over seeds: ER $21.6\pm1.8$ (buffer 500,
-5 seeds) and $38.9\pm0.9$ (2000, 5 seeds); DER++ $36.7\pm1.2$ (500, 5 seeds) and $50.6\pm2.9$
-(2000, 5 seeds); MIR $39.8\pm1.3$ and iCaRL $44.7\pm0.8$ (2000, 3 seeds). Source:
-\texttt{tables/summary.md}.
+5 seeds) and $38.9\pm0.9$ (2000, 5 seeds); DER++ $36.7\pm1.2$ (500, 5 seeds) and $50.6\pm2.9$ (2000,
+5 seeds); MIR $39.8\pm1.3$ and iCaRL $44.7\pm0.8$ (2000, 3 seeds). Source: \texttt{tables/summary.md}.
 % TODO: generate this paragraph from analysis/summarize.py instead of copying it.
 
 \end{document}
